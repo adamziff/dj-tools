@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Edit2, Save, X } from 'lucide-react';
+import ExplanationSection from './explaination-section';
 
 interface Track {
     originalName: string;
@@ -311,6 +312,7 @@ function ConverterContent() {
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-8">
+            <ExplanationSection></ExplanationSection>
             <Card className="max-w-md mx-auto">
                 <CardHeader>
                     <CardTitle>Spotify Authentication</CardTitle>
@@ -372,12 +374,12 @@ function ConverterContent() {
                                                 <div
                                                     key={index}
                                                     className={`p-2 mb-2 rounded ${track.isEditing
-                                                            ? 'bg-white dark:bg-slate-700/50'  // Normal background during editing
-                                                            : track.status === 'found'
-                                                                ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
-                                                                : track.status === 'not_found'
-                                                                    ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
-                                                                    : 'bg-white dark:bg-slate-700/50'
+                                                        ? 'bg-white dark:bg-slate-700/50'  // Normal background during editing
+                                                        : track.status === 'found'
+                                                            ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                                                            : track.status === 'not_found'
+                                                                ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
+                                                                : 'bg-white dark:bg-slate-700/50'
                                                         }`}
                                                 >
                                                     {track.isEditing ? (
