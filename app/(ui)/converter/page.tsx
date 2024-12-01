@@ -24,10 +24,8 @@ function ConverterContent() {
     const [playlistUrl, setPlaylistUrl] = useState<string | null>(null);
 
     const processM3u8Line = (line: string): string => {
-        // Split only on the first comma and return everything after it
-        const [_, ...rest] = line.split(/,(.+)/);
-        // Join back any remaining parts (in case there were more commas) and clean up
-        return (rest.join('') || line).replace(/\s*-\s*/g, ' ').trim();
+        const afterFirstComma = line.split(/,(.+)/)[1];
+        return (afterFirstComma || line).replace(/\s*-\s*/g, ' ').trim();
     };
 
     const searchSpotifyTrack = async (searchQuery: string): Promise<string | null> => {
@@ -127,14 +125,14 @@ function ConverterContent() {
                 if (parts.length < 3) return '';
 
                 // Get artist name (2 positions before the filename)
-                var artist = parts[parts.length - 3];
+                let artist = parts[parts.length - 3];
                 if (!artist || artist === 'Unknown Artist') artist = '';
 
                 // Get the filename (last part) and clean it
                 const filename = parts[parts.length - 1];
 
                 // Clean up the song name, but preserve DJ-related text
-                let songName = filename
+                const songName = filename
                     .replace(/\.(m4a|mp3|wav)$/, '')  // Remove file extension
                     .replace(/^[0-9]+ /, '')          // Remove leading track numbers
                     .replace(/^Music /, '')           // Remove leading "Music" word
@@ -147,6 +145,7 @@ function ConverterContent() {
                 return searchQuery;
             } catch (error) {
                 console.error('Error processing track:', cleanPath);
+                console.log(error);
                 return '';
             }
         }).filter(name => name && !name.includes('Serato ScratchLive')); // Filter out the header line and empty entries
