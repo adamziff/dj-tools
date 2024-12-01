@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import { useState, useEffect, ChangeEvent, FormEvent, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
@@ -13,7 +13,7 @@ interface Track {
     status: 'pending' | 'found' | 'not_found';
 }
 
-export default function SpotifyConverterPage() {
+function ConverterContent() {
     const searchParams = useSearchParams();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -75,7 +75,7 @@ export default function SpotifyConverterPage() {
             setError(errorParam);
         }
         checkAuthStatus();
-    }, []);
+    }, [searchParams]);
 
     const checkAuthStatus = async () => {
         try {
@@ -312,5 +312,25 @@ export default function SpotifyConverterPage() {
                 </Card>
             )}
         </div>
+    );
+}
+
+// Main component wrapped with Suspense
+export default function SpotifyConverterPage() {
+    return (
+        <Suspense fallback={
+            <div className="container mx-auto px-4 py-8">
+                <Card className="max-w-md mx-auto">
+                    <CardHeader>
+                        <CardTitle>Loading...</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p>Please wait while we load the converter...</p>
+                    </CardContent>
+                </Card>
+            </div>
+        }>
+            <ConverterContent />
+        </Suspense>
     );
 }
