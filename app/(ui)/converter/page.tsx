@@ -24,8 +24,10 @@ function ConverterContent() {
     const [playlistUrl, setPlaylistUrl] = useState<string | null>(null);
 
     const processM3u8Line = (line: string): string => {
-        const afterComma = line.includes(',') ? line.split(',')[1] : line;
-        return afterComma.replace(/\s*-\s*/g, ' ').trim();
+        // Split only on the first comma and return everything after it
+        const [_, ...rest] = line.split(/,(.+)/);
+        // Join back any remaining parts (in case there were more commas) and clean up
+        return (rest.join('') || line).replace(/\s*-\s*/g, ' ').trim();
     };
 
     const searchSpotifyTrack = async (searchQuery: string): Promise<string | null> => {
@@ -102,6 +104,57 @@ function ConverterContent() {
         }
     };
 
+    const processCrateFile = (buffer: ArrayBuffer): string[] => {
+        const data = new Uint8Array(buffer);
+        const decoder = new TextDecoder('utf-8');
+        const content = decoder.decode(data);
+
+        // Remove the version header
+        const contentWithoutHeader = content.replace(/^vrsn.*?\/Serato ScratchLive Crate/, '');
+
+        // Split by 'otrk' to get individual track entries
+        const tracks = contentWithoutHeader.split('otrk').filter(Boolean);
+
+        const songNames = tracks.map(track => {
+            // Remove 'ptrk' and any binary data
+            const cleanPath = track.replace('ptrk', '').replace(/[^\x20-\x7E]/g, '');
+
+            try {
+                // Split the path into components and filter out empty strings
+                const parts = cleanPath.split('/').filter(Boolean);
+
+                // Skip entries that don't look like proper file paths
+                if (parts.length < 3) return '';
+
+                // Get artist name (2 positions before the filename)
+                var artist = parts[parts.length - 3];
+                if (!artist || artist === 'Unknown Artist') artist = '';
+
+                // Get the filename (last part) and clean it
+                const filename = parts[parts.length - 1];
+
+                // Clean up the song name, but preserve DJ-related text
+                let songName = filename
+                    .replace(/\.(m4a|mp3|wav)$/, '')  // Remove file extension
+                    .replace(/^[0-9]+ /, '')          // Remove leading track numbers
+                    .replace(/^Music /, '')           // Remove leading "Music" word
+                    .replace(/  +/g, ' ')             // Remove multiple spaces
+                    .replace(/^Unknown Artist /, '')           // Remove leading "Music" word
+                    .trim();
+
+                const searchQuery = `${artist} ${songName}`;
+                // console.log('Found track:', searchQuery); // Debug log
+                return searchQuery;
+            } catch (error) {
+                console.error('Error processing track:', cleanPath);
+                return '';
+            }
+        }).filter(name => name && !name.includes('Serato ScratchLive')); // Filter out the header line and empty entries
+
+        // console.log('Total tracks found:', songNames.length); // Debug log
+        return songNames;
+    };
+
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         setError(null);
         setTracks([]);
@@ -114,43 +167,49 @@ function ConverterContent() {
         const selectedFile = e.target.files[0];
         const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
 
-        const allowedExtensions = ['m3u8']; // add other file extensions here
+        const allowedExtensions = ['m3u8', 'crate'];
         if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
-            setError('Please upload only .m3u8 files');
+            setError('Please upload only .m3u8 or .crate files');
             return;
         }
 
         setFile(selectedFile);
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const text = event.target?.result as string;
-            const lines = text.split(/\r\n|\n/);
+        if (fileExtension === 'crate') {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const buffer = event.target?.result as ArrayBuffer;
+                const processedTrackNames = processCrateFile(buffer);
 
-            let processedTracks: Track[];
-            if (fileExtension === 'm3u8') {
-                processedTracks = lines
+                const processedTracks: Track[] = processedTrackNames.map(trackName => ({
+                    originalName: trackName,
+                    searchQuery: trackName,
+                    status: 'pending' as const // explicitly type as 'pending'
+                }));
+
+                setTracks(processedTracks);
+            };
+            reader.readAsArrayBuffer(selectedFile);
+        } else {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const text = event.target?.result as string;
+                const lines = text.split(/\r\n|\n/);
+
+                const processedTracks: Track[] = lines
                     .filter((_, index) => index % 2 === 1)
                     .map(line => line.trim())
-                    .filter(line => line !== '') // Filter out empty lines
+                    .filter(line => line !== '')
                     .map(line => ({
                         originalName: line,
                         searchQuery: processM3u8Line(line),
-                        status: 'pending'
+                        status: 'pending' as const // explicitly type as 'pending'
                     }));
-            } else {
-                processedTracks = lines
-                    .filter(line => line.trim() !== '')
-                    .map(line => ({
-                        originalName: line,
-                        searchQuery: line,
-                        status: 'pending'
-                    }));
-            }
 
-            setTracks(processedTracks);
-        };
-        reader.readAsText(selectedFile);
+                setTracks(processedTracks);
+            };
+            reader.readAsText(selectedFile);
+        }
     };
 
     const createPlaylist = async () => {
@@ -239,7 +298,7 @@ function ConverterContent() {
 
                             <Input
                                 type="file"
-                                accept=".m3u8,.txt,.csv"
+                                accept=".m3u8,.crate"
                                 onChange={handleFileChange}
                                 className="w-full"
                             />
@@ -277,8 +336,8 @@ function ConverterContent() {
                                     <Button
                                         type="submit"
                                         className={`w-full font-semibold transition-colors ${!tracks.some(track => track.status === 'found')
-                                                ? 'bg-[#1DB954] hover:bg-[#1ed760] dark:hover:bg-[#1ed760]/80 text-white dark:text-white'
-                                                : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 text-black dark:text-white border border-gray-200 dark:border-slate-600'
+                                            ? 'bg-[#1DB954] hover:bg-[#1ed760] dark:hover:bg-[#1ed760]/80 text-white dark:text-white'
+                                            : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 text-black dark:text-white border border-gray-200 dark:border-slate-600'
                                             } disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 dark:disabled:text-gray-400`}
                                         disabled={!file || isSearching}
                                     >
