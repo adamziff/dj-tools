@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
                 },
                 body: JSON.stringify({
                     name,
-                    description: 'Created by Spotify Converter',
+                    description: 'created with djziff.com',
                     public: false
                 })
             }

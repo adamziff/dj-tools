@@ -200,7 +200,7 @@ function ConverterContent() {
                 </CardHeader>
                 <CardContent>
                     {error && (
-                        <div className="bg-red-100 text-red-800 p-4 rounded-md mb-4">
+                        <div className="bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 p-4 rounded-md mb-4">
                             {error === 'state_mismatch' && 'Authentication failed: State mismatch'}
                             {error === 'token_exchange_failed' && 'Failed to exchange token'}
                         </div>
@@ -218,7 +218,7 @@ function ConverterContent() {
                         </div>
                     ) : (
                         <div className="text-center">
-                            <p className="text-green-600 font-medium">✅ Successfully authenticated with Spotify</p>
+                            <p className="text-green-600 dark:text-green-400 font-medium">✅ Successfully authenticated with Spotify</p>
                         </div>
                     )}
                 </CardContent>
@@ -232,7 +232,7 @@ function ConverterContent() {
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {error && error !== 'state_mismatch' && error !== 'token_exchange_failed' && (
-                                <div className="bg-red-100 text-red-800 p-4 rounded-md">
+                                <div className="bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 p-4 rounded-md">
                                     {error}
                                 </div>
                             )}
@@ -246,7 +246,7 @@ function ConverterContent() {
 
                             {tracks.length > 0 && (
                                 <div className="space-y-4">
-                                    <div className="bg-gray-100 p-4 rounded-md">
+                                    <div className="bg-gray-100 dark:bg-slate-800/50 p-4 rounded-md">
                                         <p className="font-semibold mb-2">
                                             Uploaded {file?.name} - {tracks.length} tracks
                                         </p>
@@ -255,17 +255,17 @@ function ConverterContent() {
                                                 <div
                                                     key={index}
                                                     className={`p-2 mb-2 rounded ${track.status === 'found'
-                                                        ? 'bg-green-100'
+                                                        ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
                                                         : track.status === 'not_found'
-                                                            ? 'bg-red-100'
-                                                            : 'bg-white'
+                                                            ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
+                                                            : 'bg-white dark:bg-slate-700/50'
                                                         }`}
                                                 >
                                                     <p className="text-sm font-medium">
                                                         {track.searchQuery}
                                                     </p>
                                                     {track.spotifyUri && (
-                                                        <p className="text-xs text-gray-600 mt-1">
+                                                        <p className="text-xs text-gray-600 dark:text-slate-400 mt-1">
                                                             URI: {track.spotifyUri}
                                                         </p>
                                                     )}
@@ -276,7 +276,10 @@ function ConverterContent() {
 
                                     <Button
                                         type="submit"
-                                        className="w-full"
+                                        className={`w-full font-semibold transition-colors ${!tracks.some(track => track.status === 'found')
+                                                ? 'bg-[#1DB954] hover:bg-[#1ed760] dark:hover:bg-[#1ed760]/80 text-white dark:text-white'
+                                                : 'bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 text-black dark:text-white border border-gray-200 dark:border-slate-600'
+                                            } disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 dark:disabled:text-gray-400`}
                                         disabled={!file || isSearching}
                                     >
                                         {isSearching ? 'Searching Spotify...' : 'Search Tracks'}
@@ -285,7 +288,7 @@ function ConverterContent() {
                                     {tracks.some(track => track.status === 'found') && !playlistUrl && (
                                         <Button
                                             onClick={createPlaylist}
-                                            className="w-full"
+                                            className="w-full bg-[#1DB954] hover:bg-[#1ed760] dark:hover:bg-[#1ed760]/80 text-white dark:text-white font-semibold disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:text-gray-500 dark:disabled:text-gray-400 transition-colors"
                                             disabled={isCreatingPlaylist}
                                         >
                                             {isCreatingPlaylist ? 'Creating Playlist...' : 'Create Spotify Playlist'}
@@ -293,13 +296,15 @@ function ConverterContent() {
                                     )}
 
                                     {playlistUrl && (
-                                        <div className="bg-green-100 p-4 rounded-md">
-                                            <p className="font-medium mb-2">✅ Playlist created successfully!</p>
+                                        <div className="bg-green-100 dark:bg-green-900/20 p-4 rounded-md">
+                                            <p className="font-medium mb-2 text-green-800 dark:text-green-400">
+                                                ✅ Playlist created successfully!
+                                            </p>
                                             <a
                                                 href={playlistUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-blue-600 hover:underline"
+                                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
                                             >
                                                 Open in Spotify
                                             </a>

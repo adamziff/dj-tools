@@ -8,7 +8,7 @@ export default function Home() {
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
         <h1>PROJECTS UNDER CONSTRUCTION:</h1>
         <Link href={'/converter'}>
-          <h1>1. .M3U8 TO SPOTIFY</h1>
+          <h1 className="underline hover:opacity-70 transition-opacity">1. .M3U8 TO SPOTIFY</h1>
         </Link>
         <h1>2. PARTY PLANNER CHATBOT</h1>
         <h1> - DJ ZIFF</h1>
