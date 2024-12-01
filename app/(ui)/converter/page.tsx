@@ -195,7 +195,6 @@ function ConverterContent() {
                 // Clean up the song name, but preserve DJ-related text
                 const songName = filename
                     .replace(/\.(m4a|mp3|wav)$/, '')  // Remove file extension
-                    .replace(/^[0-9]+ /, '')          // Remove leading track numbers
                     .replace(/^Music /, '')           // Remove leading "Music" word
                     .replace(/  +/g, ' ')             // Remove multiple spaces
                     .replace(/^Unknown Artist /, '')           // Remove leading "Music" word
