@@ -51,10 +51,10 @@ export default function ExplanationSection() {
                             <ol className="text-sm text-gray-600 dark:text-gray-400 list-decimal ml-4 space-y-2">
                                 <li>Sign in below with your Spotify account</li>
                                 <li>Click &ldquo;Choose File&rdquo; and upload your .m3u8 or .crate file</li>
-                                <li>Review the matched tracks and edit if needed</li>
-                                <li>Click &ldquo;Create Spotify Playlist&rdquo;</li>
-                                <li>If any tracks are not found (red background), edit the name and save to try again</li>
-                                <li>Click &ldquo;Open in Spotify&rdquo; to navigate to your new playlist</li>
+                                <li>Review the track list and edit if needed</li>
+                                <li>Click &ldquo;Search Tracks&rdquo;</li>
+                                <li>If any tracks are not matched (red background) or matched incorrectly, edit the name and save to try again</li>
+                                <li>When you&apos;re happy with your track list, click &ldquo;Create Spotify Playlist&rdquo;</li>
                             </ol>
                         </div>
                     </CardContent>

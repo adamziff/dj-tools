@@ -299,6 +299,9 @@ function ConverterContent() {
             const data = await response.json();
             if (data.success) {
                 setPlaylistUrl(data.playlistUrl);
+
+                // Automatically open the playlist in a new tab
+                window.open(data.playlistUrl, '_blank');
             } else {
                 setError('Failed to create playlist');
             }
