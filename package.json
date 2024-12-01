@@ -17,10 +17,13 @@
     "next": "15.0.3",
     "react": "^18.0",
     "react-dom": "^18.0",
+    "shadcn-ui": "^0.9.3",
     "spotify-web-api-js": "^1.5.2",
     "spotify-web-api-node": "^5.0.2",
     "tailwind-merge": "^2.5.5",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "@radix-ui/react-label": "^2.0.0",
+    "@radix-ui/react-card": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",

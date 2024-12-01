@@ -3,7 +3,7 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 
 interface Track {
@@ -14,7 +14,6 @@ interface Track {
 }
 
 export default function SpotifyConverterPage() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -115,9 +114,9 @@ export default function SpotifyConverterPage() {
         const selectedFile = e.target.files[0];
         const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
 
-        const allowedExtensions = ['m3u8', 'txt', 'csv'];
+        const allowedExtensions = ['m3u8']; // add other file extensions here
         if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
-            setError('Please upload only .m3u8, .txt, or .csv files');
+            setError('Please upload only .m3u8 files');
             return;
         }
 
@@ -186,6 +185,7 @@ export default function SpotifyConverterPage() {
                 setError('Failed to create playlist');
             }
         } catch (error) {
+            console.log(error)
             setError('Failed to create playlist');
         } finally {
             setIsCreatingPlaylist(false);
