@@ -371,11 +371,13 @@ function ConverterContent() {
                                             {tracks.map((track, index) => (
                                                 <div
                                                     key={index}
-                                                    className={`p-2 mb-2 rounded ${track.status === 'found'
-                                                        ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
-                                                        : track.status === 'not_found'
-                                                            ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
-                                                            : 'bg-white dark:bg-slate-700/50'
+                                                    className={`p-2 mb-2 rounded ${track.isEditing
+                                                            ? 'bg-white dark:bg-slate-700/50'  // Normal background during editing
+                                                            : track.status === 'found'
+                                                                ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400'
+                                                                : track.status === 'not_found'
+                                                                    ? 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
+                                                                    : 'bg-white dark:bg-slate-700/50'
                                                         }`}
                                                 >
                                                     {track.isEditing ? (
