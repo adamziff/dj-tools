@@ -197,7 +197,6 @@ function ConverterContent() {
                     .replace(/\.(m4a|mp3|wav)$/, '')  // Remove file extension
                     .replace(/^Music /, '')           // Remove leading "Music" word
                     .replace(/  +/g, ' ')             // Remove multiple spaces
-                    .replace(/^Unknown Artist /, '')           // Remove leading "Music" word
                     .trim();
 
                 const searchQuery = `${artist} ${songName}`;
