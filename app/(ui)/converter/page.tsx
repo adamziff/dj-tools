@@ -5,12 +5,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
+import { Edit2, Save, X } from 'lucide-react';
 
 interface Track {
     originalName: string;
     searchQuery: string;
     spotifyUri?: string;
+    spotifyTrackName?: string;
+    spotifyArtistName?: string;
     status: 'pending' | 'found' | 'not_found';
+    isEditing?: boolean;
+}
+
+interface SpotifySearchResult {
+    uri: string;
+    name: string;
+    artists: { name: string }[];
 }
 
 function ConverterContent() {
@@ -22,19 +32,25 @@ function ConverterContent() {
     const [isSearching, setIsSearching] = useState(false);
     const [isCreatingPlaylist, setIsCreatingPlaylist] = useState(false);
     const [playlistUrl, setPlaylistUrl] = useState<string | null>(null);
+    const [editingTrack, setEditingTrack] = useState<string>('');
 
     const processM3u8Line = (line: string): string => {
         const afterFirstComma = line.split(/,(.+)/)[1];
         return (afterFirstComma || line).replace(/\s*-\s*/g, ' ').trim();
     };
 
-    const searchSpotifyTrack = async (searchQuery: string): Promise<string | null> => {
+    const searchSpotifyTrack = async (searchQuery: string): Promise<SpotifySearchResult | null> => {
         try {
             const response = await fetch(`/api/spotify-search?q=${encodeURIComponent(searchQuery)}`);
             const data = await response.json();
 
             if (data.tracks?.items?.length > 0) {
-                return data.tracks.items[0].uri;
+                const track = data.tracks.items[0];
+                return {
+                    uri: track.uri,
+                    name: track.name,
+                    artists: track.artists
+                };
             }
             return null;
         } catch (error) {
@@ -54,19 +70,64 @@ function ConverterContent() {
 
         const updatedTracks = [...tracks];
         for (let i = 0; i < updatedTracks.length; i++) {
+            if (updatedTracks[i].status === 'found') continue; // Skip already found tracks
+
             const track = updatedTracks[i];
-            const uri = await searchSpotifyTrack(track.searchQuery);
+            const result = await searchSpotifyTrack(track.searchQuery);
 
             updatedTracks[i] = {
                 ...track,
-                spotifyUri: uri || undefined,
-                status: uri ? 'found' : 'not_found'
+                spotifyUri: result?.uri,
+                spotifyTrackName: result?.name,
+                spotifyArtistName: result?.artists[0]?.name,
+                status: result ? 'found' : 'not_found'
             };
 
             setTracks([...updatedTracks]);
         }
 
         setIsSearching(false);
+    };
+
+    const handleEditTrack = (index: number) => {
+        const track = tracks[index];
+        setEditingTrack(track.searchQuery);
+        setTracks(tracks.map((t, i) =>
+            i === index ? { ...t, isEditing: true } : t
+        ));
+    };
+
+    const handleCancelEdit = (index: number) => {
+        setTracks(tracks.map((t, i) =>
+            i === index ? { ...t, isEditing: false } : t
+        ));
+        setEditingTrack('');
+    };
+
+    const handleSaveEdit = async (index: number) => {
+        if (!editingTrack.trim()) return;
+
+        const updatedTracks = [...tracks];
+        const track = updatedTracks[index];
+
+        // Update the search query
+        track.searchQuery = editingTrack;
+        track.isEditing = false;
+        track.status = 'pending';
+
+        // Search for the updated track
+        const result = await searchSpotifyTrack(editingTrack);
+
+        updatedTracks[index] = {
+            ...track,
+            spotifyUri: result?.uri,
+            spotifyTrackName: result?.name,
+            spotifyArtistName: result?.artists[0]?.name,
+            status: result ? 'found' : 'not_found'
+        };
+
+        setTracks(updatedTracks);
+        setEditingTrack('');
     };
 
     useEffect(() => {
@@ -319,13 +380,53 @@ function ConverterContent() {
                                                             : 'bg-white dark:bg-slate-700/50'
                                                         }`}
                                                 >
-                                                    <p className="text-sm font-medium">
-                                                        {track.searchQuery}
-                                                    </p>
-                                                    {track.spotifyUri && (
-                                                        <p className="text-xs text-gray-600 dark:text-slate-400 mt-1">
-                                                            URI: {track.spotifyUri}
-                                                        </p>
+                                                    {track.isEditing ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <Input
+                                                                value={editingTrack}
+                                                                onChange={(e) => setEditingTrack(e.target.value)}
+                                                                className="flex-1 text-sm"
+                                                                placeholder="Enter artist and song name"
+                                                            />
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => handleSaveEdit(index)}
+                                                                className="px-2 h-8"
+                                                            >
+                                                                <Save className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                onClick={() => handleCancelEdit(index)}
+                                                                className="px-2 h-8"
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    ) : (
+                                                        <div>
+                                                            <div className="flex items-center justify-between gap-2">
+                                                                <p className="text-sm font-medium">
+                                                                    {track.searchQuery}
+                                                                </p>
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    onClick={() => handleEditTrack(index)}
+                                                                    className="px-2 h-8 shrink-0"
+                                                                    disabled={isSearching}
+                                                                >
+                                                                    <Edit2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </div>
+                                                            {track.status === 'found' && (
+                                                                <p className="text-xs text-gray-600 dark:text-slate-400 mt-1">
+                                                                    Found: {track.spotifyTrackName} by {track.spotifyArtistName}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
                                             ))}
