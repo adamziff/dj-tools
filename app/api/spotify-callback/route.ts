@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         // Verify state to prevent CSRF
         const storedState = request.cookies.get('spotify_auth_state')?.value;
 
-        if (returnedState !== storedState) {
+        if (storedState && returnedState !== storedState) {
             return NextResponse.redirect(new URL('/converter?error=state_mismatch', request.url));
         }
 
