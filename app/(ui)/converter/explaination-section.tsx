@@ -6,7 +6,7 @@ import ExportInstructions from './export-instructions';
 import { useState } from 'react';
 
 export default function ExplanationSection() {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
 
     return (
         <Card className="max-w-md mx-auto mb-8 bg-white dark:bg-slate-900">
@@ -18,7 +18,7 @@ export default function ExplanationSection() {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <ListMusic className="h-5 w-5 text-gray-700 dark:text-gray-300" />
-                                <CardTitle className="text-gray-900 dark:text-gray-50">Click for instructions</CardTitle>
+                                <CardTitle className="text-gray-900 dark:text-gray-50">Start Here</CardTitle>
                             </div>
                             <ChevronDown
                                 className={`h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform ${isOpen ? 'transform rotate-180' : ''}`}
