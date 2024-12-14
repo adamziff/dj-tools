@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Edit2, Save, X } from 'lucide-react';
 import ExplanationSection from './explaination-section';
+import SpotifyAuthCard from './spotify-auth';
 
 interface Track {
     originalName: string;
@@ -316,35 +317,11 @@ function ConverterContent() {
     return (
         <div className="container mx-auto px-4 py-8 space-y-8">
             <ExplanationSection></ExplanationSection>
-            <Card className="max-w-md mx-auto">
-                <CardHeader>
-                    <CardTitle>Spotify Authentication</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {error && (
-                        <div className="bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400 p-4 rounded-md mb-4">
-                            {error === 'state_mismatch' && 'Authentication failed: State mismatch'}
-                            {error === 'token_exchange_failed' && 'Failed to exchange token'}
-                        </div>
-                    )}
-
-                    {!isAuthenticated ? (
-                        <div className="space-y-4">
-                            <p>Connect your Spotify account to get started</p>
-                            <Button
-                                onClick={initiateSpotifyLogin}
-                                className="w-full"
-                            >
-                                Login with Spotify
-                            </Button>
-                        </div>
-                    ) : (
-                        <div className="text-center">
-                            <p className="text-green-600 dark:text-green-400 font-medium">✅ Successfully authenticated with Spotify</p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+            <SpotifyAuthCard
+                error={error}
+                isAuthenticated={isAuthenticated}
+                initiateSpotifyLogin={initiateSpotifyLogin}
+            />
 
             {isAuthenticated && (
                 <Card className="max-w-md mx-auto">
