@@ -56,25 +56,32 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid playlist data received' }, { status: 500 });
         }
 
-        // Add tracks to the playlist
-        const addTracksResponse = await fetch(
-            `https://api.spotify.com/v1/playlists/${playlistData.id}/tracks`,
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    uris: tracks
-                })
-            }
-        );
+        // Add tracks to the playlist in batches of 100
+        const BATCH_SIZE = 100;
+        for (let i = 0; i < tracks.length; i += BATCH_SIZE) {
+            const trackBatch = tracks.slice(i, i + BATCH_SIZE);
+            const addTracksResponse = await fetch(
+                `https://api.spotify.com/v1/playlists/${playlistData.id}/tracks`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        uris: trackBatch
+                    })
+                }
+            );
 
-        if (!addTracksResponse.ok) {
-            const errorData = await addTracksResponse.json();
-            console.error('Failed to add tracks:', errorData);
-            return NextResponse.json({ error: 'Failed to add tracks to playlist' }, { status: addTracksResponse.status });
+            if (!addTracksResponse.ok) {
+                const errorData = await addTracksResponse.json();
+                console.error('Failed to add tracks batch:', errorData);
+                return NextResponse.json({
+                    error: 'Failed to add tracks to playlist',
+                    details: `Failed at batch starting at index ${i}`
+                }, { status: addTracksResponse.status });
+            }
         }
 
         return NextResponse.json({

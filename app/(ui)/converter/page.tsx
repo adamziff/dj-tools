@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
-import { Edit2, Save, X } from 'lucide-react';
+import { Edit2, Save, X, Trash2 } from 'lucide-react';
 import ExplanationSection from './explaination-section';
 import SpotifyAuthCard from './spotify-auth';
 
@@ -130,6 +130,10 @@ function ConverterContent() {
 
         setTracks(updatedTracks);
         setEditingTrack('');
+    };
+
+    const handleDeleteTrack = (index: number) => {
+        setTracks(tracks.filter((_, i) => i !== index));
     };
 
     useEffect(() => {
@@ -324,7 +328,7 @@ function ConverterContent() {
             />
 
             {isAuthenticated && (
-                <Card className="max-w-md mx-auto">
+                <Card className="max-w-md md:max-w-3xl mx-auto">
                     <CardHeader>
                         <CardTitle>Playlist Converter</CardTitle>
                     </CardHeader>
@@ -346,10 +350,10 @@ function ConverterContent() {
                             {tracks.length > 0 && (
                                 <div className="space-y-4">
                                     <div className="bg-gray-100 dark:bg-slate-800/50 p-4 rounded-md">
-                                        <p className="font-semibold mb-2">
+                                        <p className="font-semibold mb-2 text-gray-900 dark:text-gray-50">
                                             Uploaded {file?.name} - {tracks.length} tracks
                                         </p>
-                                        <div className="max-h-96 overflow-y-auto">
+                                        <div className="max-h-96 overflow-y-auto space-y-2">
                                             {tracks.map((track, index) => (
                                                 <div
                                                     key={index}
@@ -390,18 +394,29 @@ function ConverterContent() {
                                                     ) : (
                                                         <div>
                                                             <div className="flex items-center justify-between gap-2">
-                                                                <p className="text-sm font-medium">
+                                                                <p className="text-sm font-medium flex-1">
                                                                     {track.searchQuery}
                                                                 </p>
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="ghost"
-                                                                    onClick={() => handleEditTrack(index)}
-                                                                    className="px-2 h-8 shrink-0"
-                                                                    disabled={isSearching}
-                                                                >
-                                                                    <Edit2 className="h-4 w-4" />
-                                                                </Button>
+                                                                <div className="flex items-center gap-1 shrink-0">
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="ghost"
+                                                                        onClick={() => handleEditTrack(index)}
+                                                                        className="px-2 h-8"
+                                                                        disabled={isSearching}
+                                                                    >
+                                                                        <Edit2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="ghost"
+                                                                        onClick={() => handleDeleteTrack(index)}
+                                                                        className="px-2 h-8"
+                                                                        disabled={isSearching}
+                                                                    >
+                                                                        <Trash2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
                                                             </div>
                                                             {track.status === 'found' && (
                                                                 <p className="text-xs text-gray-600 dark:text-slate-400 mt-1">
