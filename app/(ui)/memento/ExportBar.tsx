@@ -23,7 +23,10 @@ export default function ExportBar({ state }: Props) {
             preview: false,
         };
         const res = await fetch('/api/memento/render', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
-        if (!res.ok) return;
+        if (!res.ok) {
+            console.error('Download error', res.status, await res.text());
+            return;
+        }
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

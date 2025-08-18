@@ -51,8 +51,7 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
     // Optional background SVG (e.g., neon grid)
     if (template.backgroundSvg) {
         const bgSvg = template.backgroundSvg(payload as any);
-        const bgPng = await rasterizeSvg(bgSvg, width, height);
-        base = base.composite([{ input: bgPng, left: 0, top: 0 }]);
+        base = base.composite([{ input: Buffer.from(bgSvg), left: 0, top: 0 }]);
     }
 
     // Photo layer according to template placement
@@ -69,8 +68,7 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
             if (template.backgroundEffects?.dim) {
                 const dimLevel = Math.max(0, Math.min(1, template.backgroundEffects.dim));
                 const overlay = Buffer.from(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="black" fill-opacity="${dimLevel}"/></svg>`);
-                const dimPng = await rasterizeSvg(overlay.toString(), width, height);
-                base = base.composite([{ input: dimPng, left: 0, top: 0 }]);
+                base = base.composite([{ input: overlay, left: 0, top: 0 }]);
             }
         } else {
             const x = Math.round(placement.x * scale);
@@ -85,7 +83,7 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
             if (placement.cornerRadius && placement.cornerRadius > 0) {
                 const r = Math.round(placement.cornerRadius * scale);
                 const mask = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect x="0" y="0" width="${w}" height="${h}" rx="${r}" ry="${r}"/></svg>`);
-                buffer = await sharp(buffer).composite([{ input: await rasterizeSvg(mask.toString(), w, h), blend: 'dest-in' }]).toBuffer();
+                buffer = await sharp(buffer).composite([{ input: mask, blend: 'dest-in' }]).toBuffer();
             }
             base = base.composite([{ input: buffer, left: x, top: y }]);
         }
@@ -104,8 +102,7 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
         tracks: payload.tracks,
         dominantColorHex,
     } as any);
-    const overlayPng = await rasterizeSvg(overlaySvg, width, height);
-    base = base.composite([{ input: overlayPng, left: 0, top: 0 }]);
+    base = base.composite([{ input: Buffer.from(overlaySvg), left: 0, top: 0 }]);
 
     return base.png({ compressionLevel: 9 }).toBuffer();
 }

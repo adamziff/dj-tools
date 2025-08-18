@@ -28,6 +28,7 @@ export default function MetadataFields({ partyName, date, location, notes, onCha
                 <span className="text-sm font-medium">Date</span>
                 <Input
                     placeholder="YYYY-MM-DD"
+                    type="date"
                     value={date ?? ''}
                     onChange={(e) => onChange({ partyName, date: e.target.value, location, notes })}
                 />

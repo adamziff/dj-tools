@@ -10,6 +10,7 @@ type Props = {
 export default function LivePreview({ state }: Props) {
     const [src, setSrc] = useState<string | null>(null);
     const abortRef = useRef<AbortController | null>(null);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -30,6 +31,7 @@ export default function LivePreview({ state }: Props) {
 
         const timeout = setTimeout(async () => {
             try {
+                setLoading(true);
                 const res = await fetch('/api/memento/preview', { method: 'POST', body: JSON.stringify(body), signal: controller.signal, headers: { 'Content-Type': 'application/json' } });
                 if (!res.ok) {
                     // eslint-disable-next-line no-console
@@ -40,7 +42,7 @@ export default function LivePreview({ state }: Props) {
                 setSrc(URL.createObjectURL(blob));
             } catch (_) {
                 // ignore; likely aborted or network issue
-            }
+            } finally { setLoading(false); }
         }, 400);
 
         return () => {
@@ -50,7 +52,12 @@ export default function LivePreview({ state }: Props) {
     }, [state.partyName, state.subtitleVariant, state.templateId, state.date, state.location, state.notes, JSON.stringify(state.tracks), state.photoDataUrl]);
 
     return (
-        <div className="aspect-[4/5] w-full overflow-hidden rounded-lg border bg-muted">
+        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg border bg-muted">
+            {loading && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                </div>
+            )}
             {src ? (
                 <img src={src} alt="Memento preview" className="h-full w-full object-contain" />
             ) : (
