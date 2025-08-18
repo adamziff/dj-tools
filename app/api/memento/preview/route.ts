@@ -7,6 +7,9 @@ export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
     try {
         const body = (await req.json()) as RenderPayload;
+        if (body.photo?.dataUrl) {
+            console.log('[memento/preview] photo dataUrl length', body.photo.dataUrl.length);
+        }
         const buf = await composeMemento({ ...body, preview: true });
         return new Response(buf, { headers: { 'Content-Type': 'image/png' } });
     } catch (err) {

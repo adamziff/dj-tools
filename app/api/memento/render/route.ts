@@ -15,10 +15,19 @@ export async function POST(req: NextRequest) {
     try {
         const body = (await req.json()) as RenderPayload;
         validate(body);
+        // debug: ensure photo made it to the server
+        if (body.photo?.dataUrl) {
+            console.log('[memento/render] photo dataUrl length', body.photo.dataUrl.length);
+        } else if (body.photo?.url) {
+            console.log('[memento/render] photo url', body.photo.url);
+        } else {
+            console.log('[memento/render] no photo provided');
+        }
         const buf = await composeMemento({ ...body, preview: false });
         return new Response(buf, { headers: { 'Content-Type': 'image/png' } });
     } catch (err) {
-        return new Response(JSON.stringify({ error: (err as Error).message }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+        console.error('[memento/render] error', err);
+        return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }
 

@@ -165,7 +165,6 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
             return `<?xml version="1.0" encoding="UTF-8"?>
 			<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="1548">
 				<rect x="40" y="40" width="1160" height="1468" fill="#f8fafc" stroke="#e2e8f0"/>
-				<rect x="80" y="120" width="560" height="720" fill="#e5e7eb"/>
 				<text x="100" y="880" font-family="system-ui, sans-serif" font-size="24" fill="#111">${escapeXml(subtitle)}</text>
 				<text x="100" y="930" font-family="system-ui, sans-serif" font-size="56" font-weight="800" fill="#111">${escapeXml(ellipsize(partyName, 30))}</text>
 				<text x="760" y="180" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" fill="#111">${list}</text>
