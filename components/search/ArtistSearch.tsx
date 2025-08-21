@@ -44,7 +44,7 @@ export function ArtistSearch({ value, onChange, onSelect }: { value: string; onC
     }, [value]);
 
     return (
-        <div className="relative">
+        <div className="relative z-50">
             <Input
                 placeholder="Search for an artist"
                 value={value}
@@ -52,7 +52,7 @@ export function ArtistSearch({ value, onChange, onSelect }: { value: string; onC
                 className="bg-white/90 dark:bg-slate-900/60 border-slate-200/50 dark:border-slate-700/60"
             />
             {results.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full bg-white/95 dark:bg-slate-900/95 border border-gray-200 dark:border-slate-700 rounded-md shadow-md max-h-64 overflow-y-auto">
+                <div className="absolute z-10 mt-1 w-full bg-white/95 dark:bg-slate-900/95 border border-gray-200 dark:border-slate-700 rounded-md shadow-md max-h-80 overflow-y-auto">
                     {results.map((a) => (
                         <button
                             key={a.id}
