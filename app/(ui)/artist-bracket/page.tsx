@@ -153,7 +153,7 @@ export default function ArtistBracketPage() {
                                                     <span>Share your results</span>
                                                 </div>
                                                 <Button onClick={() => generateShareImage()} size="sm" className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-bold py-2 px-4 rounded-lg">
-                                                    Download PNG
+                                                    📱 Save to Photos
                                                 </Button>
                                             </div>
                                         </Card>
@@ -185,17 +185,48 @@ export default function ArtistBracketPage() {
                 return;
             }
             const canvas = await drawShareImage({ artistName: selected.name, finalFour: ff, champion: champ });
+
+            // Check if we're on mobile and if Web Share API is available
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (isMobile && navigator.share && canvas.toBlob) {
+                // Mobile: Convert canvas to blob and use Web Share API to save to Photos
+                canvas.toBlob(async (blob) => {
+                    if (blob) {
+                        const file = new File([blob], `${selected.name.replace(/\s+/g, '-')}-bracket.png`, { type: 'image/png' });
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: 'My Music Bracket Results',
+                                text: `Check out my ${selected.name} bracket results!`
+                            });
+                        } catch {
+                            // Fallback to download if sharing fails
+                            downloadFallback(canvas, selected.name);
+                        }
+                    }
+                }, 'image/png');
+            } else {
+                // Desktop or fallback: Traditional download
+                downloadFallback(canvas, selected.name);
+            }
+
+            // Set image URL for preview
             const url = canvas.toDataURL('image/png');
             setImageUrl(url);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${selected.name.replace(/\s+/g, '-')}-bracket.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
         } catch {
             // ignore
         }
+    }
+
+    function downloadFallback(canvas: HTMLCanvasElement, artistName: string) {
+        const url = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${artistName.replace(/\s+/g, '-')}-bracket.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 }
 
