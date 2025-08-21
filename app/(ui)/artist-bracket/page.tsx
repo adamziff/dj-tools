@@ -55,12 +55,14 @@ function advanceRound(prevRound: Matchup[]): Matchup[] {
     return next;
 }
 
-function Bracket({ seeds, onChampion }: { seeds: TrackSeed[]; onChampion: (t: TrackSeed) => void }) {
+function Bracket({ seeds, onChampion, onRoundsChange }: { seeds: TrackSeed[]; onChampion: (t: TrackSeed) => void; onRoundsChange?: (rounds: Matchup[][]) => void }) {
     const [rounds, setRounds] = useState<Matchup[][]>(() => [buildInitialRound64(seeds)]);
 
     useEffect(() => {
-        setRounds([buildInitialRound64(seeds)]);
-    }, [seeds]);
+        const initial = [buildInitialRound64(seeds)];
+        setRounds(initial);
+        onRoundsChange?.(initial);
+    }, [seeds, onRoundsChange]);
 
     const roundNames = ['Round of 64', 'Round of 32', 'Sweet 16', 'Elite 8', 'Final 4', 'Championship'];
 
@@ -94,6 +96,7 @@ function Bracket({ seeds, onChampion }: { seeds: TrackSeed[]; onChampion: (t: Tr
                 if (champ) onChampion(champ);
             }
 
+            onRoundsChange?.(copy);
             return copy;
         });
     };
@@ -152,6 +155,8 @@ export default function ArtistBracketPage() {
     const [selected, setSelected] = useState<Artist | null>(null);
     const [seeds, setSeeds] = useState<TrackSeed[]>([]);
     const [champion, setChampion] = useState<TrackSeed | null>(null);
+    const [roundsSnapshot, setRoundsSnapshot] = useState<Matchup[][]>([]);
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const check = async () => {
@@ -270,10 +275,18 @@ export default function ArtistBracketPage() {
 
                             {seeds.length > 0 && (
                                 <div className="space-y-4">
-                                    <Bracket seeds={seeds} onChampion={setChampion} />
+                                    <Bracket seeds={seeds} onChampion={setChampion} onRoundsChange={setRoundsSnapshot} />
                                     {champion && (
                                         <Card className="p-4">
                                             <div className="text-center">Champion: <span className="font-semibold">{champion.name}</span></div>
+                                            <div className="flex justify-center mt-4">
+                                                <Button onClick={() => generateShareImage()}>Download PNG</Button>
+                                            </div>
+                                            {imageUrl && (
+                                                <div className="mt-4">
+                                                    <img src={imageUrl} alt="Shareable bracket result" className="max-w-full h-auto mx-auto" />
+                                                </div>
+                                            )}
                                         </Card>
                                     )}
                                 </div>
@@ -284,5 +297,136 @@ export default function ArtistBracketPage() {
             </Card>
         </div>
     );
+    function generateShareImage() {
+        try {
+            if (!selected) {
+                setError('Please select an artist.');
+                return;
+            }
+            const ff = pickFinalFour(roundsSnapshot);
+            const champ = champion || getChampion(roundsSnapshot);
+            if (!champ) {
+                setError('Please finish the bracket to select a champion.');
+                return;
+            }
+            const canvas = drawShareImage({ artistName: selected.name, finalFour: ff, champion: champ });
+            const url = canvas.toDataURL('image/png');
+            setImageUrl(url);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${selected.name.replace(/\s+/g, '-')}-bracket.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch (e) {
+            // ignore
+        }
+    }
 }
+
+function pickFinalFour(rounds: Matchup[][]): TrackSeed[] {
+    // Round indices: 0:64,1:32,2:16,3:8,4:4 (semifinals),5:2 (championship)
+    const r4 = rounds[4] || [];
+    const participants: TrackSeed[] = [];
+    for (const m of r4) {
+        if (m.a) participants.push(m.a);
+        if (m.b) participants.push(m.b);
+    }
+    return participants.slice(0, 4);
+}
+
+function getChampion(rounds: Matchup[][]): TrackSeed | null {
+    const last = rounds[5]?.[0];
+    if (!last) return null;
+    return last.winnerId === last.a?.id ? last.a || null : last.b || null;
+}
+
+function drawShareImage(opts: { artistName: string; finalFour: TrackSeed[]; champion: TrackSeed }): HTMLCanvasElement {
+    const width = 1200;
+    const height = 630;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d')!;
+
+    // Background
+    ctx.fillStyle = '#0f172a'; // slate-900
+    ctx.fillRect(0, 0, width, height);
+
+    // Title
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 42px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif';
+    ctx.fillText('DJ Tools - Artist Song Bracket', 40, 70);
+
+    // Artist
+    ctx.font = 'bold 36px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif';
+    ctx.fillStyle = '#93c5fd';
+    ctx.fillText(`Artist: ${opts.artistName}`, 40, 120);
+
+    // Champion box
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(40, 160, width - 80, 160);
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 40px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif';
+    ctx.fillText('Champion', 60, 210);
+    ctx.font = 'bold 34px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif';
+    wrapText(ctx, opts.champion.name, 60, 250, width - 120, 38);
+
+    // Final Four grid
+    const ffX = 40;
+    const ffY = 360;
+    const ffW = (width - 80 - 30) / 2;
+    const ffH = 110;
+
+    ctx.font = 'bold 28px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('Final Four', ffX, ffY - 16);
+
+    for (let i = 0; i < Math.min(4, opts.finalFour.length); i++) {
+        const row = Math.floor(i / 2);
+        const col = i % 2;
+        const x = ffX + col * (ffW + 30);
+        const y = ffY + row * (ffH + 20);
+
+        // Card
+        ctx.fillStyle = '#1f2937'; // gray-800
+        ctx.fillRect(x, y, ffW, ffH);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif';
+        wrapText(ctx, `(${opts.finalFour[i].seed}) ${opts.finalFour[i].name}`, x + 16, y + 36, ffW - 32, 26);
+    }
+
+    // Footer
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '20px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif';
+    ctx.fillText('Create your own at djziff.com', 40, height - 30);
+
+    return canvas;
+}
+
+function wrapText(
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number,
+    maxWidth: number,
+    lineHeight: number
+) {
+    const words = text.split(' ');
+    let line = '';
+    let currentY = y;
+    for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+            ctx.fillText(line, x, currentY);
+            line = words[n] + ' ';
+            currentY += lineHeight;
+        } else {
+            line = testLine;
+        }
+    }
+    ctx.fillText(line, x, currentY);
+}
+
 
