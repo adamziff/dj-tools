@@ -202,9 +202,9 @@ export default function ArtistBracketPage() {
 // moved to lib/bracket
 
 async function drawShareImage(opts: { artistName: string; finalFour: TrackSeed[]; champion: TrackSeed }): Promise<HTMLCanvasElement> {
-    // Portrait aspect ratio for mobile sharing (1080x1920)
+    // Shorter portrait aspect ratio for mobile sharing (1080x1600)
     const width = 1080;
-    const height = 1920;
+    const height = 1600;
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -266,18 +266,18 @@ async function drawShareImage(opts: { artistName: string; finalFour: TrackSeed[]
     titleGradient.addColorStop(0.5, '#22d3ee'); // cyan-400
     titleGradient.addColorStop(1, '#34d399'); // green-400
 
-    ctx.font = 'bold 64px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.font = 'bold 72px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = titleGradient;
-    ctx.fillText('Musician March Madness', 60, 100);
+    ctx.fillText('Musician March Madness', 60, 90);
 
     // Artist label with better contrast
-    ctx.font = 'bold 40px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.font = 'bold 48px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = '#e2e8f0'; // slate-200
-    ctx.fillText(`Artist: ${opts.artistName}`, 60, 170);
+    ctx.fillText(`Artist: ${opts.artistName}`, 60, 150);
 
-    // Champion section with better layout
+    // Champion section with better layout - more space from header
     const champY = 220;
-    const champH = 280;
+    const champH = 320;
 
     // Champion background with rounded corners effect
     const champGrad = ctx.createLinearGradient(60, champY, width - 60, champY + champH);
@@ -296,86 +296,110 @@ async function drawShareImage(opts: { artistName: string; finalFour: TrackSeed[]
     ctx.stroke();
 
     // Crown emoji and title
-    ctx.font = 'bold 54px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.font = 'bold 60px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = '#fbbf24'; // amber-400
     ctx.fillText('👑 CHAMPION', 100, champY + 80);
 
-    // Champion album art (if available)
+    // Champion album art (if available) - bigger
     const championImage = images[0];
     if (championImage) {
         ctx.save();
         // Create circular clip for champion album art
         ctx.beginPath();
-        ctx.arc(180, champY + 160, 50, 0, Math.PI * 2);
+        ctx.arc(200, champY + 180, 70, 0, Math.PI * 2);
         ctx.clip();
-        ctx.drawImage(championImage, 130, champY + 110, 100, 100);
+        ctx.drawImage(championImage, 130, champY + 110, 140, 140);
         ctx.restore();
     }
 
     // Champion name with better typography - adjusted for image
-    ctx.font = 'bold 48px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.font = 'bold 52px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = '#ffffff';
-    const champTextX = championImage ? 300 : 100;
-    const champTextW = championImage ? width - 360 : width - 200;
-    wrapText(ctx, opts.champion.name, champTextX, champY + 150, champTextW, 56);
+    const champTextX = championImage ? 320 : 100;
+    const champTextW = championImage ? width - 380 : width - 200;
+    wrapText(ctx, opts.champion.name, champTextX, champY + 170, champTextW, 60);
 
     // Seed number
-    ctx.font = 'bold 32px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.font = 'bold 36px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = '#fbbf24';
-    ctx.fillText(`Seed #${opts.champion.seed}`, champTextX, champY + 230);
+    ctx.fillText(`Seed #${opts.champion.seed}`, champTextX, champY + 250);
 
-    // Final Four section with improved spacing - moved down more
-    const ffY = champY + champH + 100;
+    // Final Four section with much more space from champion section
+    const ffY = champY + champH + 120;
     const ffCardW = width - 120;
-    const ffCardH = 200;
+    const ffCardH = 180;
 
-    ctx.font = 'bold 40px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.font = 'bold 48px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = '#e2e8f0';
-    ctx.fillText('Final Four', 60, ffY - 20);
+    ctx.fillText('Final Four', 60, ffY - 15);
 
-    for (let i = 0; i < Math.min(4, opts.finalFour.length); i++) {
+    // Sort Final Four by podium order: champion first, then others
+    const sortedFinalFour = [...opts.finalFour];
+    const championIndex = sortedFinalFour.findIndex(track => track.id === opts.champion.id);
+    if (championIndex > -1) {
+        // Move champion to first position
+        const champion = sortedFinalFour.splice(championIndex, 1)[0];
+        sortedFinalFour.unshift(champion);
+    }
+
+    // Podium colors (subtle)
+    const podiumColors = [
+        { bg: 'rgba(255, 215, 0, 0.15)', border: 'rgba(255, 215, 0, 0.4)', name: '🥇' }, // Gold
+        { bg: 'rgba(192, 192, 192, 0.15)', border: 'rgba(192, 192, 192, 0.4)', name: '🥈' }, // Silver  
+        { bg: 'rgba(205, 127, 50, 0.15)', border: 'rgba(205, 127, 50, 0.4)', name: '🥉' }, // Bronze
+        { bg: 'rgba(205, 127, 50, 0.15)', border: 'rgba(205, 127, 50, 0.4)', name: '🥉' }  // Bronze
+    ];
+
+    for (let i = 0; i < Math.min(4, sortedFinalFour.length); i++) {
         const x = 60;
-        const y = ffY + i * (ffCardH + 30);
+        const y = ffY + i * (ffCardH + 25); // Slightly more spacing between cards
 
-        // Card with rounded corners
-        ctx.fillStyle = 'rgba(51, 65, 85, 0.8)'; // slate-700/80
+        const track = sortedFinalFour[i];
+        const podium = podiumColors[i];
+
+        // Card with podium-colored background
+        ctx.fillStyle = podium.bg;
         roundRect(ctx, x, y, ffCardW, ffCardH, 20);
         ctx.fill();
 
-        ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+        // Card border with podium color
+        ctx.strokeStyle = podium.border;
         ctx.lineWidth = 3;
         roundRect(ctx, x, y, ffCardW, ffCardH, 20);
         ctx.stroke();
 
-        // Album art from loaded images
-        const track = opts.finalFour[i];
-        const trackImage = images[i + 1]; // +1 because index 0 is champion image
+        // Find the correct image for this track
+        const originalIndex = opts.finalFour.findIndex(t => t.id === track.id);
+        const trackImage = images[originalIndex + 1]; // +1 because index 0 is champion image
+
+        // Podium medal in top-right corner
+        ctx.font = '32px system-ui';
+        ctx.fillText(podium.name, x + ffCardW - 60, y + 40);
 
         if (trackImage) {
             ctx.save();
             // Create circular clip for album art
             ctx.beginPath();
-            ctx.arc(x + 60, y + 100, 40, 0, Math.PI * 2);
+            ctx.arc(x + 70, y + 90, 50, 0, Math.PI * 2);
             ctx.clip();
-            ctx.drawImage(trackImage, x + 20, y + 60, 80, 80);
+            ctx.drawImage(trackImage, x + 20, y + 40, 100, 100);
             ctx.restore();
         }
 
-        // Song info - adjusted to make room for album art
+        // Song info - adjusted to make room for bigger album art
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 32px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
-        const textX = trackImage ? x + 120 : x + 40; // Move text right if there's album art
-        const textW = trackImage ? ffCardW - 160 : ffCardW - 80;
-        wrapText(ctx, `#${track.seed} ${track.name}`, textX, y + 80, textW, 40);
+        ctx.font = 'bold 38px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+        const textX = trackImage ? x + 140 : x + 40; // Move text right if there's album art
+        const textW = trackImage ? ffCardW - 200 : ffCardW - 100; // Extra space for medal
+        wrapText(ctx, `#${track.seed} ${track.name}`, textX, y + 90, textW, 46);
     }
 
-    // Footer with better styling
-    ctx.font = '24px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    // Footer with better styling 
+    ctx.font = '28px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = '#94a3b8';
-    const date = new Date().toLocaleDateString();
-    const footerText = `Created ${date} • djziff.com`;
+    const footerText = `Built on djziff.com`;
     const footerWidth = ctx.measureText(footerText).width;
-    ctx.fillText(footerText, (width - footerWidth) / 2, height - 60);
+    ctx.fillText(footerText, (width - footerWidth) / 2, height - 40);
 
     return canvas;
 

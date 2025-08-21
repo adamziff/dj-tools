@@ -176,7 +176,8 @@ export function pickFinalFour(rounds: Matchup[][]): TrackSeed[] {
 
 export function getChampion(rounds: Matchup[][]): TrackSeed | null {
     const last = rounds[rounds.length - 1]?.[0];
-    if (!last) return null;
-    return last.winnerId === last.a?.id ? last.a || null : last.b || null;
+    if (!last || !last.winnerId) return null;
+    return last.winnerId === last.a?.id ? last.a || null :
+        last.winnerId === last.b?.id ? last.b || null : null;
 }
 
