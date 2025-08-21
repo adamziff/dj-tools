@@ -1,11 +1,11 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import type { Matchup, TrackSeed } from "@/lib/bracket";
 import { advanceRound, buildInitialRound, computeRoundNames, propagateWinnerChange } from "@/lib/bracket";
 
-export function Bracket({ seeds, onChampion, onRoundsChange }: { seeds: TrackSeed[]; onChampion: (t: TrackSeed) => void; onRoundsChange?: (rounds: Matchup[][]) => void }) {
+export function Bracket({ seeds, onChampion, onRoundsChange, renderBelowChampion }: { seeds: TrackSeed[]; onChampion: (t: TrackSeed | null) => void; onRoundsChange?: (rounds: Matchup[][]) => void; renderBelowChampion?: ReactNode }) {
     const [rounds, setRounds] = useState<Matchup[][]>(() => [buildInitialRound(seeds)]);
 
     const totalRounds = useMemo(() => Math.max(1, Math.log2(Math.max(1, seeds.length))), [seeds.length]);
@@ -32,11 +32,17 @@ export function Bracket({ seeds, onChampion, onRoundsChange }: { seeds: TrackSee
 
     useEffect(() => {
         const lastRound = rounds[rounds.length - 1];
-        if (!lastRound || lastRound.length === 0) return;
+        if (!lastRound || lastRound.length === 0) {
+            onChampion(null);
+            return;
+        }
         const finalMatch = lastRound[0];
-        if (!finalMatch?.winnerId) return;
+        if (!finalMatch?.winnerId) {
+            onChampion(null);
+            return;
+        }
         const champ = finalMatch.winnerId === finalMatch.a?.id ? finalMatch.a : finalMatch.b;
-        if (champ) onChampion(champ);
+        onChampion(champ);
     }, [rounds, onChampion]);
 
     const selectWinner = (roundIndex: number, matchupIndex: number, winnerId: string) => {
@@ -96,6 +102,8 @@ export function Bracket({ seeds, onChampion, onRoundsChange }: { seeds: TrackSee
                     </div>
                 </Card>
             </div>
+
+            {renderBelowChampion}
 
             {/* Bracket Grid */}
             <div className="overflow-x-auto pb-4">

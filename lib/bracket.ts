@@ -18,11 +18,79 @@ export type Matchup = {
 export function buildInitialRound(seeds: TrackSeed[]): Matchup[] {
     const n = seeds.length;
     const matchups: Matchup[] = [];
-    for (let i = 0; i < Math.floor(n / 2); i++) {
-        const top = seeds[i];
-        const bottom = seeds[n - 1 - i];
-        matchups.push({ id: `r${n}-${i}`, a: top, b: bottom });
+
+    // For 64-team bracket, use proper March Madness seeding
+    if (n === 64) {
+        const regions = [
+            [1, 16, 8, 9, 5, 12, 4, 13, 6, 11, 3, 14, 7, 10, 2, 15], // Region 1
+            [1, 16, 8, 9, 5, 12, 4, 13, 6, 11, 3, 14, 7, 10, 2, 15], // Region 2  
+            [1, 16, 8, 9, 5, 12, 4, 13, 6, 11, 3, 14, 7, 10, 2, 15], // Region 3
+            [1, 16, 8, 9, 5, 12, 4, 13, 6, 11, 3, 14, 7, 10, 2, 15]  // Region 4
+        ];
+
+        let matchupIndex = 0;
+        for (let region = 0; region < 4; region++) {
+            const regionSeeds = regions[region];
+            for (let i = 0; i < regionSeeds.length; i += 2) {
+                const seed1 = regionSeeds[i] + (region * 16); // Offset by region
+                const seed2 = regionSeeds[i + 1] + (region * 16);
+                const team1 = seeds[seed1 - 1]; // Convert to 0-based index
+                const team2 = seeds[seed2 - 1];
+                matchups.push({ id: `r${n}-${matchupIndex}`, a: team1, b: team2 });
+                matchupIndex++;
+            }
+        }
     }
+    // For 32-team bracket
+    else if (n === 32) {
+        const regions = [
+            [1, 16, 8, 9, 5, 12, 4, 13, 6, 11, 3, 14, 7, 10, 2, 15], // Region 1 (seeds 1-16)
+            [1, 16, 8, 9, 5, 12, 4, 13, 6, 11, 3, 14, 7, 10, 2, 15]  // Region 2 (seeds 17-32)
+        ];
+
+        let matchupIndex = 0;
+        for (let region = 0; region < 2; region++) {
+            const regionSeeds = regions[region];
+            for (let i = 0; i < regionSeeds.length; i += 2) {
+                const seed1 = regionSeeds[i] + (region * 16);
+                const seed2 = regionSeeds[i + 1] + (region * 16);
+                const team1 = seeds[seed1 - 1];
+                const team2 = seeds[seed2 - 1];
+                matchups.push({ id: `r${n}-${matchupIndex}`, a: team1, b: team2 });
+                matchupIndex++;
+            }
+        }
+    }
+    // For 16-team bracket
+    else if (n === 16) {
+        const regionSeeds = [1, 16, 8, 9, 5, 12, 4, 13, 6, 11, 3, 14, 7, 10, 2, 15];
+        for (let i = 0; i < regionSeeds.length; i += 2) {
+            const seed1 = regionSeeds[i];
+            const seed2 = regionSeeds[i + 1];
+            const team1 = seeds[seed1 - 1];
+            const team2 = seeds[seed2 - 1];
+            matchups.push({ id: `r${n}-${i / 2}`, a: team1, b: team2 });
+        }
+    }
+    // For 8-team bracket, use simple 1v8, 4v5, 3v6, 2v7 pattern
+    else if (n === 8) {
+        const pairings = [[1, 8], [4, 5], [3, 6], [2, 7]];
+        for (let i = 0; i < pairings.length; i++) {
+            const [seed1, seed2] = pairings[i];
+            const team1 = seeds[seed1 - 1];
+            const team2 = seeds[seed2 - 1];
+            matchups.push({ id: `r${n}-${i}`, a: team1, b: team2 });
+        }
+    }
+    // Fallback to original logic for other sizes
+    else {
+        for (let i = 0; i < Math.floor(n / 2); i++) {
+            const top = seeds[i];
+            const bottom = seeds[n - 1 - i];
+            matchups.push({ id: `r${n}-${i}`, a: top, b: bottom });
+        }
+    }
+
     return matchups;
 }
 

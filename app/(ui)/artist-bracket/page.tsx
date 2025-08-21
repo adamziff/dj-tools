@@ -141,33 +141,28 @@ export default function ArtistBracketPage() {
 
                         {!isGenerating && seeds.length > 0 && (
                             <div className="space-y-6">
-                                <Bracket seeds={seeds} onChampion={setChampion} onRoundsChange={setRoundsSnapshot} />
-                                {champion && (
-                                    <Card className="p-6 bg-gradient-to-br from-emerald-500/20 via-blue-500/20 to-purple-500/20 border-emerald-400/30 shadow-xl">
-                                        <div className="text-center">
-                                            <div className="flex items-center justify-center gap-3 mb-4">
-                                                <div className="text-3xl">🎉</div>
-                                                <h3 className="text-xl md:text-2xl font-bold text-emerald-300">Share Your Results!</h3>
-                                            </div>
-                                            <Button
-                                                onClick={() => generateShareImage()}
-                                                size="lg"
-                                                className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all"
-                                            >
-                                                <span className="flex items-center gap-2">
-                                                    📸 Download PNG
-                                                </span>
-                                            </Button>
-                                            {imageUrl && (
-                                                <div className="mt-6 p-4 bg-black/20 rounded-xl">
-                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={imageUrl} alt="Shareable bracket result" className="max-w-full h-auto mx-auto rounded-lg shadow-lg" />
-                                                    <div className="mt-4 text-sm text-gray-300">
-                                                        Right-click to save or share on social media!
-                                                    </div>
+                                <Bracket
+                                    seeds={seeds}
+                                    onChampion={setChampion}
+                                    onRoundsChange={setRoundsSnapshot}
+                                    renderBelowChampion={champion ? (
+                                        <Card className="mt-2 p-4 bg-white/80 dark:bg-slate-900/60 backdrop-blur border border-emerald-400/30">
+                                            <div className="text-center">
+                                                <div className="flex items-center justify-center gap-2 mb-3 text-emerald-300 font-semibold">
+                                                    <span>🎉</span>
+                                                    <span>Share your results</span>
                                                 </div>
-                                            )}
-                                        </div>
+                                                <Button onClick={() => generateShareImage()} size="sm" className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white font-bold py-2 px-4 rounded-lg">
+                                                    Download PNG
+                                                </Button>
+                                            </div>
+                                        </Card>
+                                    ) : null}
+                                />
+                                {champion && imageUrl && (
+                                    <Card className="p-4 bg-black/20 rounded-xl">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={imageUrl} alt="Shareable bracket result" className="max-w-full h-auto mx-auto rounded-lg shadow-lg" />
                                     </Card>
                                 )}
                             </div>
@@ -177,7 +172,7 @@ export default function ArtistBracketPage() {
             </Card>
         </div>
     );
-    function generateShareImage() {
+    async function generateShareImage() {
         try {
             if (!selected) {
                 setError('Please select an artist.');
@@ -189,7 +184,7 @@ export default function ArtistBracketPage() {
                 setError('Please finish the bracket to select a champion.');
                 return;
             }
-            const canvas = drawShareImage({ artistName: selected.name, finalFour: ff, champion: champ });
+            const canvas = await drawShareImage({ artistName: selected.name, finalFour: ff, champion: champ });
             const url = canvas.toDataURL('image/png');
             setImageUrl(url);
             const a = document.createElement('a');
@@ -206,13 +201,46 @@ export default function ArtistBracketPage() {
 
 // moved to lib/bracket
 
-function drawShareImage(opts: { artistName: string; finalFour: TrackSeed[]; champion: TrackSeed }): HTMLCanvasElement {
-    const width = 1200;
-    const height = 800;
+async function drawShareImage(opts: { artistName: string; finalFour: TrackSeed[]; champion: TrackSeed }): Promise<HTMLCanvasElement> {
+    // Portrait aspect ratio for mobile sharing (1080x1920)
+    const width = 1080;
+    const height = 1920;
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d')!;
+
+    // Pre-load all images
+    const loadImage = (src: string): Promise<HTMLImageElement> => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+            img.src = src;
+        });
+    };
+
+    const imagePromises: Promise<HTMLImageElement | null>[] = [];
+
+    // Champion image
+    if (opts.champion.image) {
+        imagePromises.push(loadImage(opts.champion.image));
+    } else {
+        imagePromises.push(Promise.resolve(null));
+    }
+
+    // Final Four images
+    for (const track of opts.finalFour) {
+        if (track.image) {
+            imagePromises.push(loadImage(track.image));
+        } else {
+            imagePromises.push(Promise.resolve(null));
+        }
+    }
+
+    const loadedImages = await Promise.allSettled(imagePromises);
+    const images = loadedImages.map(result => result.status === 'fulfilled' ? result.value : null);
 
     // Modern gradient background
     const gradient = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.max(width, height) / 2);
@@ -238,18 +266,18 @@ function drawShareImage(opts: { artistName: string; finalFour: TrackSeed[]; cham
     titleGradient.addColorStop(0.5, '#22d3ee'); // cyan-400
     titleGradient.addColorStop(1, '#34d399'); // green-400
 
-    ctx.font = 'bold 52px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.font = 'bold 64px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = titleGradient;
-    ctx.fillText('Musician March Madness', 60, 90);
+    ctx.fillText('Musician March Madness', 60, 100);
 
     // Artist label with better contrast
-    ctx.font = 'bold 32px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.font = 'bold 40px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = '#e2e8f0'; // slate-200
-    ctx.fillText(`Artist: ${opts.artistName}`, 60, 150);
+    ctx.fillText(`Artist: ${opts.artistName}`, 60, 170);
 
     // Champion section with better layout
-    const champY = 200;
-    const champH = 180;
+    const champY = 220;
+    const champH = 280;
 
     // Champion background with rounded corners effect
     const champGrad = ctx.createLinearGradient(60, champY, width - 60, champY + champH);
@@ -258,69 +286,96 @@ function drawShareImage(opts: { artistName: string; finalFour: TrackSeed[]; cham
     champGrad.addColorStop(1, 'rgba(59, 130, 246, 0.2)'); // blue-500/20
 
     ctx.fillStyle = champGrad;
-    roundRect(ctx, 60, champY, width - 120, champH, 20);
+    roundRect(ctx, 60, champY, width - 120, champH, 30);
     ctx.fill();
 
     // Champion border
     ctx.strokeStyle = 'rgba(253, 224, 71, 0.6)'; // yellow-300/60
-    ctx.lineWidth = 3;
-    roundRect(ctx, 60, champY, width - 120, champH, 20);
+    ctx.lineWidth = 4;
+    roundRect(ctx, 60, champY, width - 120, champH, 30);
     ctx.stroke();
 
     // Crown emoji and title
-    ctx.font = 'bold 42px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.font = 'bold 54px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = '#fbbf24'; // amber-400
-    ctx.fillText('👑 CHAMPION', 80, champY + 50);
+    ctx.fillText('👑 CHAMPION', 100, champY + 80);
 
-    // Champion name with better typography
-    ctx.font = 'bold 36px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    // Champion album art (if available)
+    const championImage = images[0];
+    if (championImage) {
+        ctx.save();
+        // Create circular clip for champion album art
+        ctx.beginPath();
+        ctx.arc(180, champY + 160, 50, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(championImage, 130, champY + 110, 100, 100);
+        ctx.restore();
+    }
+
+    // Champion name with better typography - adjusted for image
+    ctx.font = 'bold 48px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = '#ffffff';
-    wrapText(ctx, opts.champion.name, 80, champY + 100, width - 160, 42);
+    const champTextX = championImage ? 300 : 100;
+    const champTextW = championImage ? width - 360 : width - 200;
+    wrapText(ctx, opts.champion.name, champTextX, champY + 150, champTextW, 56);
 
     // Seed number
-    ctx.font = '24px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
-    ctx.fillStyle = '#fbbf24';
-    ctx.fillText(`Seed #${opts.champion.seed}`, 80, champY + 150);
-
-    // Final Four section with improved spacing
-    const ffY = 420;
-    const ffSpacing = 30;
-    const ffCardW = (width - 120 - ffSpacing) / 2;
-    const ffCardH = 140;
-
     ctx.font = 'bold 32px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillText(`Seed #${opts.champion.seed}`, champTextX, champY + 230);
+
+    // Final Four section with improved spacing - moved down more
+    const ffY = champY + champH + 100;
+    const ffCardW = width - 120;
+    const ffCardH = 200;
+
+    ctx.font = 'bold 40px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = '#e2e8f0';
     ctx.fillText('Final Four', 60, ffY - 20);
 
     for (let i = 0; i < Math.min(4, opts.finalFour.length); i++) {
-        const row = Math.floor(i / 2);
-        const col = i % 2;
-        const x = 60 + col * (ffCardW + ffSpacing);
-        const y = ffY + row * (ffCardH + 20);
+        const x = 60;
+        const y = ffY + i * (ffCardH + 30);
 
         // Card with rounded corners
         ctx.fillStyle = 'rgba(51, 65, 85, 0.8)'; // slate-700/80
-        roundRect(ctx, x, y, ffCardW, ffCardH, 15);
+        roundRect(ctx, x, y, ffCardW, ffCardH, 20);
         ctx.fill();
 
         ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
-        ctx.lineWidth = 2;
-        roundRect(ctx, x, y, ffCardW, ffCardH, 15);
+        ctx.lineWidth = 3;
+        roundRect(ctx, x, y, ffCardW, ffCardH, 20);
         ctx.stroke();
 
-        // Song info
+        // Album art from loaded images
+        const track = opts.finalFour[i];
+        const trackImage = images[i + 1]; // +1 because index 0 is champion image
+
+        if (trackImage) {
+            ctx.save();
+            // Create circular clip for album art
+            ctx.beginPath();
+            ctx.arc(x + 60, y + 100, 40, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(trackImage, x + 20, y + 60, 80, 80);
+            ctx.restore();
+        }
+
+        // Song info - adjusted to make room for album art
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
-        wrapText(ctx, `#${opts.finalFour[i].seed} ${opts.finalFour[i].name}`, x + 20, y + 40, ffCardW - 40, 28);
+        ctx.font = 'bold 32px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+        const textX = trackImage ? x + 120 : x + 40; // Move text right if there's album art
+        const textW = trackImage ? ffCardW - 160 : ffCardW - 80;
+        wrapText(ctx, `#${track.seed} ${track.name}`, textX, y + 80, textW, 40);
     }
 
     // Footer with better styling
-    ctx.font = '18px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+    ctx.font = '24px system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
     ctx.fillStyle = '#94a3b8';
     const date = new Date().toLocaleDateString();
     const footerText = `Created ${date} • djziff.com`;
     const footerWidth = ctx.measureText(footerText).width;
-    ctx.fillText(footerText, (width - footerWidth) / 2, height - 40);
+    ctx.fillText(footerText, (width - footerWidth) / 2, height - 60);
 
     return canvas;
 
