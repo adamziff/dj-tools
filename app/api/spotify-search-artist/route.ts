@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
         const data = await response.json();
 
-        const artists = (data.artists?.items || []).map((a: any) => ({
+        const artists = (data.artists?.items || []).map((a: { id: string; name: string; images?: { url: string }[]; popularity?: number; followers?: { total?: number } }) => ({
             id: a.id,
             name: a.name,
             images: a.images || [],

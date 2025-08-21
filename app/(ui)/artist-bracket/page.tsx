@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ArtistSearch from '@/components/search/ArtistSearch';
 import { Button } from '@/components/ui/button';
@@ -10,17 +10,15 @@ import { pickFinalFour, getChampion } from '@/lib/bracket';
 type Artist = {
     id: string;
     name: string;
-    images: { url: string; width: number; height: number }[];
-    popularity: number;
-    followers: number;
+    images: { url: string }[];
 };
 
 import type { TrackSeed, Matchup } from '@/lib/bracket';
 
 export default function ArtistBracketPage() {
-    const [error, setError] = useState<string | null>(null);
+    const [, setError] = useState<string | null>(null);
     const [query, setQuery] = useState('');
-    const [isSearching, setIsSearching] = useState(false);
+    const [isSearching] = useState(false);
     const [selected, setSelected] = useState<Artist | null>(null);
     const [seeds, setSeeds] = useState<TrackSeed[]>([]);
     const [champion, setChampion] = useState<TrackSeed | null>(null);
@@ -28,6 +26,13 @@ export default function ArtistBracketPage() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [bracketSize, setBracketSize] = useState<number>(8);
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
+    // Keep champion in sync with the latest rounds snapshot so it clears/updates
+    // when upstream selections invalidate a previous champion.
+    useEffect(() => {
+        const champ = getChampion(roundsSnapshot);
+        setChampion(champ);
+    }, [roundsSnapshot]);
 
     // search handled by ArtistSearch
 
@@ -59,7 +64,7 @@ export default function ArtistBracketPage() {
                 <CardHeader>
                     <CardTitle>
                         <span className="bg-gradient-to-r from-fuchsia-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent text-2xl md:text-3xl font-extrabold tracking-tight">
-                            Artist Song Bracket
+                            Musician March Madness
                         </span>
                     </CardTitle>
                 </CardHeader>
@@ -69,7 +74,7 @@ export default function ArtistBracketPage() {
                             value={query}
                             onChange={setQuery}
                             onSelect={(a) => {
-                                setSelected(a as any);
+                                setSelected(a);
                                 setQuery(a.name);
                             }}
                         />
@@ -119,6 +124,7 @@ export default function ArtistBracketPage() {
                                         </div>
                                         {imageUrl && (
                                             <div className="mt-4">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img src={imageUrl} alt="Shareable bracket result" className="max-w-full h-auto mx-auto" />
                                             </div>
                                         )}
@@ -152,7 +158,7 @@ export default function ArtistBracketPage() {
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-        } catch (e) {
+        } catch {
             // ignore
         }
     }

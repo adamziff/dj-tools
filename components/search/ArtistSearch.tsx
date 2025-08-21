@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 
@@ -11,7 +11,7 @@ type Artist = {
 
 export function ArtistSearch({ value, onChange, onSelect }: { value: string; onChange: (v: string) => void; onSelect: (artist: Artist) => void }) {
     const [results, setResults] = useState<Artist[]>([]);
-    const [isSearching, setIsSearching] = useState(false);
+    const [, setIsSearching] = useState(false);
     const suppressNextSearchRef = useRef(false);
 
     // Debounced search
