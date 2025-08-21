@@ -85,7 +85,7 @@ async function fetchTracksDetails(trackIds: string[], accessToken: string): Prom
                 id: t.id,
                 name: t.name,
                 popularity: t.popularity,
-                artists: (t.artists || []).map((a: any) => ({ id: a.id, name: a.name })),
+                artists: (t.artists || []).map((a: { id: string; name: string }) => ({ id: a.id, name: a.name })),
                 album: { images: t.album?.images || [] },
                 preview_url: t.preview_url,
                 uri: t.uri,
@@ -114,10 +114,7 @@ export async function GET(request: NextRequest) {
     const desiredSize = Math.max(8, Math.min(64, Number(sizeParam) || 64));
     const requestedSize = allowedSizes.includes(desiredSize) ? desiredSize : 64;
 
-    let accessToken = request.cookies.get('spotify_access_token')?.value;
-    if (!accessToken) {
-        accessToken = await getAppAccessToken();
-    }
+    const accessToken = await getAppAccessToken();
     if (!accessToken) return NextResponse.json({ error: 'Spotify auth unavailable' }, { status: 503 });
 
     try {
@@ -186,7 +183,7 @@ export async function GET(request: NextRequest) {
         }));
 
         return NextResponse.json({ tracks: simplified });
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error(e);
         return NextResponse.json({ error: 'Failed to load artist tracks' }, { status: 500 });
     }

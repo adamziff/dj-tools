@@ -28,10 +28,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'No search query provided' }, { status: 400 });
     }
 
-    let accessToken = request.cookies.get('spotify_access_token')?.value;
-    if (!accessToken) {
-        accessToken = await getAppAccessToken();
-    }
+    const accessToken = await getAppAccessToken();
     if (!accessToken) return NextResponse.json({ error: 'Spotify auth unavailable' }, { status: 503 });
 
     try {
