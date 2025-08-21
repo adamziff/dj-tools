@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import SpotifyAuthCard from '../converter/spotify-auth';
+// Removed login component for bracket flow
 
 type Artist = {
     id: string;
@@ -31,13 +31,13 @@ type Matchup = {
     winnerId?: string;
 };
 
-function buildInitialRound64(seeds: TrackSeed[]): Matchup[] {
-    const n = seeds.length; // expect 64
+function buildInitialRound(seeds: TrackSeed[]): Matchup[] {
+    const n = seeds.length;
     const matchups: Matchup[] = [];
-    for (let i = 0; i < n / 2; i++) {
+    for (let i = 0; i < Math.floor(n / 2); i++) {
         const top = seeds[i];
         const bottom = seeds[n - 1 - i];
-        matchups.push({ id: `r64-${i}`, a: top, b: bottom });
+        matchups.push({ id: `r${n}-${i}`, a: top, b: bottom });
     }
     return matchups;
 }
@@ -56,15 +56,49 @@ function advanceRound(prevRound: Matchup[]): Matchup[] {
 }
 
 function Bracket({ seeds, onChampion, onRoundsChange }: { seeds: TrackSeed[]; onChampion: (t: TrackSeed) => void; onRoundsChange?: (rounds: Matchup[][]) => void }) {
-    const [rounds, setRounds] = useState<Matchup[][]>(() => [buildInitialRound64(seeds)]);
+    const [rounds, setRounds] = useState<Matchup[][]>(() => [buildInitialRound(seeds)]);
+
+    const totalRounds = Math.max(1, Math.log2(Math.max(1, seeds.length)));
+
+    function getRoundNames(size: number): string[] {
+        const names: string[] = [];
+        const labels: Record<number, string> = {
+            64: 'Round of 64',
+            32: 'Round of 32',
+            16: 'Sweet 16',
+            8: 'Elite 8',
+            4: 'Final 4',
+            2: 'Championship',
+        };
+        let n = size;
+        while (n >= 2) {
+            names.push(labels[n] || `Round of ${n}`);
+            n = n / 2;
+        }
+        return names;
+    }
+
+    const roundNames = getRoundNames(seeds.length);
 
     useEffect(() => {
-        const initial = [buildInitialRound64(seeds)];
+        const initial = [buildInitialRound(seeds)];
         setRounds(initial);
-        onRoundsChange?.(initial);
-    }, [seeds, onRoundsChange]);
+    }, [seeds]);
 
-    const roundNames = ['Round of 64', 'Round of 32', 'Sweet 16', 'Elite 8', 'Final 4', 'Championship'];
+    // Notify parent when rounds change (avoid calling during render/update functions)
+    useEffect(() => {
+        onRoundsChange?.(rounds);
+    }, [rounds, onRoundsChange]);
+
+    // Notify parent when a champion is decided
+    useEffect(() => {
+        const lastRound = rounds[rounds.length - 1];
+        if (!lastRound || lastRound.length === 0) return;
+        const finalMatch = lastRound[0];
+        if (!finalMatch?.winnerId) return;
+        const champ = finalMatch.winnerId === finalMatch.a?.id ? finalMatch.a : finalMatch.b;
+        if (champ) onChampion(champ);
+    }, [rounds, onChampion]);
 
     const selectWinner = (roundIndex: number, matchupIndex: number, winnerId: string) => {
         setRounds((prev) => {
@@ -74,7 +108,7 @@ function Bracket({ seeds, onChampion, onRoundsChange }: { seeds: TrackSeed[]; on
             // If round complete, create next round or update next round pairing
             const currentRound = copy[roundIndex];
             const isComplete = currentRound.every((m) => !!m.winnerId);
-            const isLastRound = roundIndex === (roundNames.length - 1);
+            const isLastRound = roundIndex === totalRounds - 1;
             if (!isLastRound) {
                 if (!copy[roundIndex + 1]) {
                     copy[roundIndex + 1] = advanceRound(currentRound);
@@ -90,20 +124,13 @@ function Bracket({ seeds, onChampion, onRoundsChange }: { seeds: TrackSeed[]; on
                 }
             }
 
-            if (isComplete && isLastRound) {
-                const finalMatch = currentRound[0];
-                const champ = finalMatch.winnerId === finalMatch.a?.id ? finalMatch.a : finalMatch.b;
-                if (champ) onChampion(champ);
-            }
-
-            onRoundsChange?.(copy);
             return copy;
         });
     };
 
     return (
         <div className="overflow-x-auto">
-            <div className="grid grid-cols-7 gap-4 min-w-[1200px]">
+            <div className="grid gap-4 min-w-[1200px]" style={{ gridTemplateColumns: `repeat(${roundNames.length + 1}, minmax(0, 1fr))` }}>
                 {roundNames.map((title, colIdx) => (
                     <div key={title} className="space-y-2">
                         <div className="text-center font-semibold text-sm mb-2">{title}</div>
@@ -147,7 +174,6 @@ function Bracket({ seeds, onChampion, onRoundsChange }: { seeds: TrackSeed[]; on
 }
 
 export default function ArtistBracketPage() {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [query, setQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
@@ -157,33 +183,7 @@ export default function ArtistBracketPage() {
     const [champion, setChampion] = useState<TrackSeed | null>(null);
     const [roundsSnapshot, setRoundsSnapshot] = useState<Matchup[][]>([]);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
-
-    useEffect(() => {
-        const check = async () => {
-            try {
-                const res = await fetch('/api/check-auth');
-                const data = await res.json();
-                setIsAuthenticated(data.isAuthenticated);
-            } catch (e) {
-                // noop
-            }
-        };
-        check();
-    }, []);
-
-    const initiateSpotifyLogin = async () => {
-        try {
-            const response = await fetch('/api/spotify-callback', {
-                method: 'GET',
-                redirect: 'manual'
-            });
-            if (response.type === 'opaqueredirect') {
-                window.location.href = response.url;
-            }
-        } catch (e) {
-            // noop
-        }
-    };
+    const [bracketSize, setBracketSize] = useState<number>(64);
 
     useEffect(() => {
         if (!query.trim()) {
@@ -212,7 +212,7 @@ export default function ArtistBracketPage() {
         setSeeds([]);
         setChampion(null);
         try {
-            const res = await fetch(`/api/spotify-artist-tracks?artistId=${selected.id}`);
+            const res = await fetch(`/api/spotify-artist-tracks?artistId=${selected.id}&size=${bracketSize}`);
             const data = await res.json();
             if (!res.ok) throw new Error(data?.error || 'Failed to fetch tracks');
             if (!data.tracks || data.tracks.length < 2) {
@@ -232,67 +232,76 @@ export default function ArtistBracketPage() {
                     <CardTitle>Artist Song Bracket</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <SpotifyAuthCard error={error} isAuthenticated={isAuthenticated} initiateSpotifyLogin={initiateSpotifyLogin} />
-
-                    {isAuthenticated && (
-                        <div className="space-y-4">
-                            <div className="relative">
-                                <Input
-                                    placeholder="Search for an artist"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                />
-                                {results.length > 0 && (
-                                    <div className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-md shadow-md max-h-64 overflow-y-auto">
-                                        {results.map((a) => (
-                                            <button
-                                                key={a.id}
-                                                className="w-full text-left p-2 hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center gap-2"
-                                                onClick={() => {
-                                                    setSelected(a);
-                                                    setQuery(a.name);
-                                                    setResults([]);
-                                                }}
-                                            >
-                                                {a.images?.[a.images.length - 1]?.url && (
-                                                    <img src={a.images[a.images.length - 1].url} alt={a.name} className="h-6 w-6 rounded-sm object-cover" />
-                                                )}
-                                                <span className="text-sm">{a.name}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                <Button onClick={generateBracket} disabled={!selected || isSearching}>
-                                    {isSearching ? 'Loading…' : 'Generate 64-Song Bracket'}
-                                </Button>
-                                {selected && (
-                                    <div className="text-sm text-gray-600 dark:text-gray-400">Selected: <span className="font-medium">{selected.name}</span></div>
-                                )}
-                            </div>
-
-                            {seeds.length > 0 && (
-                                <div className="space-y-4">
-                                    <Bracket seeds={seeds} onChampion={setChampion} onRoundsChange={setRoundsSnapshot} />
-                                    {champion && (
-                                        <Card className="p-4">
-                                            <div className="text-center">Champion: <span className="font-semibold">{champion.name}</span></div>
-                                            <div className="flex justify-center mt-4">
-                                                <Button onClick={() => generateShareImage()}>Download PNG</Button>
-                                            </div>
-                                            {imageUrl && (
-                                                <div className="mt-4">
-                                                    <img src={imageUrl} alt="Shareable bracket result" className="max-w-full h-auto mx-auto" />
-                                                </div>
+                    <div className="space-y-4">
+                        <div className="relative">
+                            <Input
+                                placeholder="Search for an artist"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
+                            {results.length > 0 && (
+                                <div className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-md shadow-md max-h-64 overflow-y-auto">
+                                    {results.map((a) => (
+                                        <button
+                                            key={a.id}
+                                            className="w-full text-left p-2 hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center gap-2"
+                                            onClick={() => {
+                                                setSelected(a);
+                                                setQuery(a.name);
+                                                setResults([]);
+                                            }}
+                                        >
+                                            {a.images?.[a.images.length - 1]?.url && (
+                                                <img src={a.images[a.images.length - 1].url} alt={a.name} className="h-6 w-6 rounded-sm object-cover" />
                                             )}
-                                        </Card>
-                                    )}
+                                            <span className="text-sm">{a.name}</span>
+                                        </button>
+                                    ))}
                                 </div>
                             )}
                         </div>
-                    )}
+
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2">
+                                <label htmlFor="bracket-size" className="text-sm text-gray-600 dark:text-gray-400">Bracket size:</label>
+                                <select
+                                    id="bracket-size"
+                                    className="border rounded px-2 py-1 bg-white dark:bg-slate-900 text-sm"
+                                    value={bracketSize}
+                                    onChange={(e) => setBracketSize(Number(e.target.value))}
+                                >
+                                    {[8, 16, 32, 64].map((n) => (
+                                        <option key={n} value={n}>{n}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <Button onClick={generateBracket} disabled={!selected || isSearching}>
+                                {isSearching ? 'Loading…' : `Generate ${bracketSize}-Song Bracket`}
+                            </Button>
+                            {selected && (
+                                <div className="text-sm text-gray-600 dark:text-gray-400">Selected: <span className="font-medium">{selected.name}</span></div>
+                            )}
+                        </div>
+
+                        {seeds.length > 0 && (
+                            <div className="space-y-4">
+                                <Bracket seeds={seeds} onChampion={setChampion} onRoundsChange={setRoundsSnapshot} />
+                                {champion && (
+                                    <Card className="p-4">
+                                        <div className="text-center">Champion: <span className="font-semibold">{champion.name}</span></div>
+                                        <div className="flex justify-center mt-4">
+                                            <Button onClick={() => generateShareImage()}>Download PNG</Button>
+                                        </div>
+                                        {imageUrl && (
+                                            <div className="mt-4">
+                                                <img src={imageUrl} alt="Shareable bracket result" className="max-w-full h-auto mx-auto" />
+                                            </div>
+                                        )}
+                                    </Card>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
         </div>
@@ -325,10 +334,10 @@ export default function ArtistBracketPage() {
 }
 
 function pickFinalFour(rounds: Matchup[][]): TrackSeed[] {
-    // Round indices: 0:64,1:32,2:16,3:8,4:4 (semifinals),5:2 (championship)
-    const r4 = rounds[4] || [];
+    if (!rounds || rounds.length < 2) return [];
+    const semifinalRound = rounds[rounds.length - 2] || [];
     const participants: TrackSeed[] = [];
-    for (const m of r4) {
+    for (const m of semifinalRound) {
         if (m.a) participants.push(m.a);
         if (m.b) participants.push(m.b);
     }
@@ -336,7 +345,7 @@ function pickFinalFour(rounds: Matchup[][]): TrackSeed[] {
 }
 
 function getChampion(rounds: Matchup[][]): TrackSeed | null {
-    const last = rounds[5]?.[0];
+    const last = rounds[rounds.length - 1]?.[0];
     if (!last) return null;
     return last.winnerId === last.a?.id ? last.a || null : last.b || null;
 }
