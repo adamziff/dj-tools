@@ -10,7 +10,10 @@ export default function Home() {
         <Link href={'/converter'}>
           <h1 className="underline hover:opacity-70 transition-opacity">1. .M3U8 TO SPOTIFY</h1>
         </Link>
-        <h1>2. PARTY PLANNER CHATBOT</h1>
+        <Link href={'/artist-bracket'}>
+          <h1 className="underline hover:opacity-70 transition-opacity">2. ARTIST SONG BRACKET</h1>
+        </Link>
+        <h1>3. PARTY PLANNER CHATBOT</h1>
         <h1> - DJ ZIFF</h1>
         {/* <Image
           className="dark:invert"
