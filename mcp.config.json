@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "browser-use": {
+      "command": "pnpm",
+      "args": ["run", "mcp:browser"],
+      "env": {
+        "HEADLESS": "false"
+      }
+    }
+  }
+}

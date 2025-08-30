@@ -6,7 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "mcp:browser": "tsx mcp/browser-use-server.ts",
+    "playwright:install": "playwright install chromium",
+    "mcp:smoke": "tsx scripts/mcp-smoke.ts",
+    "memento:assets": "tsx scripts/generate-test-assets.ts",
+    "mcp:memento-flow": "tsx scripts/mcp-memento-flow.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -33,6 +38,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.2.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
@@ -41,6 +47,9 @@
     "eslint-config-next": "15.0.3",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "tsx": "^4.19.0",
+    "typescript": "^5",
+    "zod": "^3.23.8",
+    "playwright": "^1.47.2"
   }
 }

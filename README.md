@@ -34,3 +34,16 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## MCP: Browser Use (Codex CLI)
+- Server: `mcp/browser-use-server.ts` (Playwright-based MCP server exposing navigate/click/fill/screenshot/etc.).
+- Script: `pnpm mcp:browser` (runs via `tsx`).
+- Config: `mcp.config.json` declares an `mcpServers.browser-use` entry using that script.
+
+Setup steps (pnpm):
+- Install deps: `pnpm install` then `pnpm playwright:install` (downloads Chromium).
+- Start server (manually): `pnpm mcp:browser` (set `HEADLESS=true` to run headless).
+- Codex CLI: point your MCP client to `mcp.config.json` or add an equivalent server entry that runs `pnpm mcp:browser`.
+
+Available tools:
+- `navigate(url)`, `screenshot(fullPage?)`, `content(includeHtml?)`, `click(selector)`, `fill(selector, value)`, `wait_for(selector, state)`, `evaluate(expression)`, `go(action)`.

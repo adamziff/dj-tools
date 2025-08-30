@@ -1,0 +1,52 @@
+Party Name:
+Melissa & Andrew's Wedding
+
+Date:
+08/16/2025
+
+Location:
+Guastavino's
+
+Notes:
+Such a fun night- Mazel Tov!
+
+Tracklist:
+#	Artwork	Track Title	Artist	Album	Genre	BPM	Rating	Time	Key	Date Added
+1		Deep End (SIDEPIECE Remix)	John Summit & SIDEPIECE	Deep End (SIDEPIECE Remix) - Single	Electronic	126.00	     	03:16	Em	2022-10-01
+2		Drench	AYYBO & Preme	Drench - Single	Dance	127.00	     	03:17	Eb	2024-12-15
+3		Nissan Altima [Devault Remix]	Doechii			128.00	     	03:54	Am	2025-02-17
+4		Fitness (SIDEPIECE Fergalicious Bootleg)	Fergie, will.i.am			132.00	     	04:00	Abm	2024-08-15
+5		Otis - REDD Remix (Clean)	JAY-Z & Kanye West ft. Otis Redding		Dance	124.00	     	03:24	Cm / F	2024-11-07
+6		Memories 2021 (Dirty)	David Guetta ft. Kid Cudi		House	127.00	     	03:47	Bbm	2024-03-04
+7		Danza Kuduro - Tiësto Remix	Don Omar & Lucenzo		Dance	125.00	     	03:37	Am	2024-06-08
+8		Only Girl (In The World) - Freejak Remix	Rihanna		House	126.00	     	05:07	D	2022-12-23
+9		Take It Off (Intro - Dirty)	FISHER & Aatig		Dance	127.00	     	05:26	Ebm	2023-08-26
+10		Bongo Cha Cha Cha	Goodboys		House	126.00	     	02:51	Eb	2023-08-26
+11		No Broke Boys (Intro - Dirty)	Disco Lines & Tinashe			131.00	     	03:25	B	2025-08-05
+12		Do It To It (feat. Cherish)	Acraze	Do It To It (feat. Cherish) - Single	Dance	125.00	     	02:37	Bm	2022-08-08
+13		Pump It Up (Radio Edit)	Endor		House	128.96	     	02:30	Bm	2020-03-24
+14		Pump It Louder	Tiësto & Black Eyed Peas			126.00	     	03:45	Em	2022-12-23
+15		San Frandisco	Dom Dolla	San Frandisco - Single	Dance	125.00	     	03:05	Fm	2025-08-13
+16		Hot In Herre - Andrew Lux Remix	Nelly		Dance	126.00	     	02:51	Em	2023-11-30
+17		Work (Proppa, Rich DietZ, Smith & Sorren Edit)	A$AP Ferg			130.00	     	04:03	Dm	2025-02-20
+18		Habits (Stay High) (Bessey Remix) [Hood Politics Records]	Tove Lo			130.00	     	05:10	Dm	2025-04-25
+19		Goosebumps (Remix)	Travis Scott & HVME	Goosebumps (Remix) - Single	Hip-Hop/Rap	125.00	     	02:42	Ebm	2021-09-17
+20		Breaking Me - HUGEL Remix (Intro - Dirty)	Topic & A7S		House	126.00	     	05:05	Abm	2025-08-05
+21		Piece Of Your Heart - Alok Remix	Meduza		House	124.00	     	03:53	Bbm	2020-04-13
+22		Turn On The Lights again.. (feat. Future)	Fred again.. & Swedish House Mafia	Turn On The Lights again.. (feat. Future) - Single	Electronic	132.00	     	04:28	F#m	2022-12-01
+23		Jungle (Intro - Dirty)	Fred again..		Dance	134.00	     	04:07	E	2023-01-23
+24		The Days - NOTION Remix	CHRYSTAL		Dance	138.00	     	03:53	D	2025-08-05
+25		Head & Heart - Timmy Trumpet Remix	Joel Corry ft. MNEK		House	128.00	     	03:02	Ab	2024-03-04
+26		Kill the Lights (with Nile Rodgers) [Audien Remix]	Alex Newell, Jess Glynne & DJ Cassidy	Kill the Lights (with Nile Rodgers) [Remixes] - EP	Dance	126.00	     	03:44	G	2020-05-15
+27		WE FOUND LOVE (LEONDIS 2024 REMIX EXTENDED)	Rihanna & Calvin Harris			128.00	     	03:37	F	2024-08-28
+28		When It Comes to You (dEVOLVE Remix)	Sean Paul	When It Comes to You (Remixes) - Single	Dance	126.00	     	04:20	Db	2025-08-13
+29		Let Me Love You - Don Diablo Remix	DJ Snake ft. Justin Bieber	Let Me Love You - Don Diablo Remix	EDM+V	126.00	     	04:25	Cm	2018-08-27
+30		Rhythm Of The Night	Fedde Le Grand	Something Real (Deluxe)	Dance	125.00	     	03:38	Cm	2025-08-13
+31		(It Goes Like) Nanana (Edit)	Peggy Gou	(It Goes Like) Nanana [Edit] - Single	Dance	130.00	     	03:51	Cm	2023-08-26
+32		Intoxicated (Radio Edit)	Martin Solveig & GTA		House	125.00	     	02:50	C	2017-07-29
+33		Losing It - The Stickmen Gecko Edit	FISHER			126.00	     	03:04	Gm	2020-03-24
+34		Don't Stop The Music - Jean Philippe Hooked Edit	Rihanna		House	126.00	     	03:57	F#m	2022-12-23
+35		Where You Are	John Summit & Hayla			126.00	     	05:07	Am	2024-11-21
+36		Don't Forget My Love	Diplo & Miguel	Diplo	Dance	121.00	     	03:19	D	2022-12-01
+37		Shiver	John Summit & HAYLA		Dance	127.00	     	03:53	Em	2025-08-05
+38		Levels	Avicii	Levels - Single	Dance	126.00	     	03:19	Dbm	2013-07-20
