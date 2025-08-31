@@ -1,42 +1,10 @@
-01. Artist 01 – Track Title 01 (Extended Mix)
-02. Artist 02 – Track Title 02 (Extended Mix)
-03. Artist 03 – Track Title 03 (Extended Mix)
-04. Artist 04 – Track Title 04 (Extended Mix)
-05. Artist 05 – Track Title 05 (Extended Mix)
-06. Artist 06 – Track Title 06 (Extended Mix)
-07. Artist 07 – Track Title 07 (Extended Mix)
-08. Artist 08 – Track Title 08 (Extended Mix)
-09. Artist 09 – Track Title 09 (Extended Mix)
-10. Artist 10 – Track Title 10 (Extended Mix)
-11. Artist 11 – Track Title 11 (Extended Mix)
-12. Artist 12 – Track Title 12 (Extended Mix)
-13. Artist 13 – Track Title 13 (Extended Mix)
-14. Artist 14 – Track Title 14 (Extended Mix)
-15. Artist 15 – Track Title 15 (Extended Mix)
-16. Artist 16 – Track Title 16 (Extended Mix)
-17. Artist 17 – Track Title 17 (Extended Mix)
-18. Artist 18 – Track Title 18 (Extended Mix)
-19. Artist 19 – Track Title 19 (Extended Mix)
-20. Artist 20 – Track Title 20 (Extended Mix)
-21. Artist 21 – Track Title 21 (Extended Mix)
-22. Artist 22 – Track Title 22 (Extended Mix)
-23. Artist 23 – Track Title 23 (Extended Mix)
-24. Artist 24 – Track Title 24 (Extended Mix)
-25. Artist 25 – Track Title 25 (Extended Mix)
-26. Artist 26 – Track Title 26 (Extended Mix)
-27. Artist 27 – Track Title 27 (Extended Mix)
-28. Artist 28 – Track Title 28 (Extended Mix)
-29. Artist 29 – Track Title 29 (Extended Mix)
-30. Artist 30 – Track Title 30 (Extended Mix)
-31. Artist 31 – Track Title 31 (Extended Mix)
-32. Artist 32 – Track Title 32 (Extended Mix)
-33. Artist 33 – Track Title 33 (Extended Mix)
-34. Artist 34 – Track Title 34 (Extended Mix)
-35. Artist 35 – Track Title 35 (Extended Mix)
-36. Artist 36 – Track Title 36 (Extended Mix)
-37. Artist 37 – Track Title 37 (Extended Mix)
-38. Artist 38 – Track Title 38 (Extended Mix)
-39. Artist 39 – Track Title 39 (Extended Mix)
-40. Artist 40 – Track Title 40 (Extended Mix)
-41. Artist 41 – Track Title 41 (Extended Mix)
-42. Artist 42 – Track Title 42 (Extended Mix)
+#	Comments	Track Title	Artist	BPM	Key	My Tag	Time	Date Added	DJ Play Count
+1		Free Bird - MOONLGHT Remix	Lynyrd Skynyrd	142.00	Gm		03:09	2024-11-07	0
+2		Otis - REDD Remix (Clean)	JAY-Z & Kanye West ft. Otis Redding	124.00	Eb		03:24	2024-11-07	1
+3		Body Pump - Sammy Virji Remix	Aluna	130.00	Bbm		04:19	2024-11-15	0
+4		Counting - Sammy Virji Remix	Hamdi & Princess Superstar	134.00	Em		03:35	2024-11-15	0
+5		If U Need It	Sammy Virji	132.00	Ebm		02:57	2024-11-15	0
+6		Take That	DJ SWISHERMAN & BEADS	140.00	Fm		04:27	2024-11-15	0
+7		Smoked Out	DJ SWISHERMAN	145.00	Fm		05:04	2024-11-15	0
+8		Hotel Pool (DJ SWISHERMAN & Boys Noize Remix)	David Löhlein	144.00	Gm		05:06	2024-11-15	0
+9		DIET PEPSI (ANOP's DREAMLAND MIX)	Addison Rae	154.00	Cm		03:44	2024-10-05	4

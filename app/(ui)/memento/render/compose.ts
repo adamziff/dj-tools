@@ -45,7 +45,7 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
     const width = template.width * scale;
     const height = template.height * scale;
 
-    // Base canvas
+    // Base canvas starts as empty black; for full-cover photos we will replace with the photo directly
     let base = sharp({ create: { width, height, channels: 3, background: { r: 0, g: 0, b: 0 } } }).png();
 
     // Optional background SVG (e.g., neon grid)
@@ -59,12 +59,13 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
         const photoBuf = await loadPhotoBuffer(payload.photo);
         const placement = template.photoPlacement;
         if (placement.mode === 'cover') {
-            let img = sharp(photoBuf).resize(width, height, { fit: 'cover', position: 'centre' });
+            let img = sharp(photoBuf).resize(width, height, { fit: 'cover', position: 'centre' }).modulate({ brightness: 1.08 });
             if (template.backgroundEffects?.blur) {
                 img = img.blur(template.backgroundEffects.blur);
             }
             const resized = await img.toBuffer();
-            base = base.composite([{ input: resized, left: 0, top: 0 }]);
+            // Use the photo as the base image to guarantee visibility
+            base = sharp(resized);
             if (template.backgroundEffects?.dim) {
                 const dimLevel = Math.max(0, Math.min(1, template.backgroundEffects.dim));
                 const overlay = Buffer.from(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="black" fill-opacity="${dimLevel}"/></svg>`);
@@ -106,5 +107,3 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
 
     return base.png({ compressionLevel: 9 }).toBuffer();
 }
-
-

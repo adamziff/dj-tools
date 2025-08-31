@@ -8,7 +8,7 @@ function validate(body: RenderPayload) {
     if (!body.partyName || !body.partyName.trim()) throw new Error('Party name is required');
     if (!Array.isArray(body.tracks)) throw new Error('Tracks must be an array');
     if (body.tracks.length < 1) throw new Error('At least one track is required');
-    if (body.tracks.length > 100) throw new Error('Max 100 tracks');
+    if (body.tracks.length > 200) throw new Error('Max 200 tracks');
 }
 
 export async function POST(req: NextRequest) {
@@ -30,5 +30,4 @@ export async function POST(req: NextRequest) {
         return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }
-
 

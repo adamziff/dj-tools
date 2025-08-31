@@ -14,11 +14,25 @@ function splitArtistTitle(raw: string): { artist: string; titleWithMix: string }
 }
 
 function separateMix(titleWithMix: string): { title: string; mix?: string } {
-    const match = titleWithMix.match(/^(.*?)(\s*\(([^)]*)\))?\s*$/u);
-    if (!match) return { title: titleWithMix.trim() };
-    const title = (match[1] ?? "").trim();
-    const mix = match[3]?.trim();
-    return mix ? { title, mix } : { title };
+    // Case 1: parentheses already present
+    const paren = titleWithMix.match(/^(.*?)(\s*\(([^)]*)\))?\s*$/u);
+    if (paren) {
+        const title = (paren[1] ?? "").trim();
+        const mix = paren[3]?.trim();
+        if (mix) return { title, mix };
+        // fallthrough to hyphen heuristic if no parentheses content
+        titleWithMix = title;
+    }
+    // Case 2: hyphen-separated trailing mix e.g. "Title - Extended Mix"
+    const parts = titleWithMix.split(/\s-\s/u);
+    if (parts.length > 1) {
+        const maybeMix = parts[parts.length - 1].trim();
+        const isMix = /mix|edit|remix|version|bootleg|dub|vip|rework|instrumental|radio|extended/i.test(maybeMix);
+        if (isMix) {
+            return { title: parts.slice(0, -1).join(' - ').trim(), mix: maybeMix };
+        }
+    }
+    return { title: titleWithMix.trim() };
 }
 
 function looksLikeTsvHeader(line: string): boolean {
@@ -51,7 +65,7 @@ function parseTsv(lines: string[], max: number): Track[] {
     return out;
 }
 
-export function parseTracklist(input: string, max: number = 100): Track[] {
+export function parseTracklist(input: string, max: number = 200): Track[] {
     const rawLines = input.split(/\r?\n/u);
     const nonEmpty = rawLines.map((l) => l.trim()).filter((l) => l.length > 0);
     if (nonEmpty.length > 0 && looksLikeTsvHeader(nonEmpty[0])) {
@@ -61,7 +75,10 @@ export function parseTracklist(input: string, max: number = 100): Track[] {
     const tracks: Track[] = [];
     for (const raw of nonEmpty) {
         if (tracks.length >= max) break;
-        const cleaned = stripLeadingBulletsOrNumbers(raw);
+        const cleaned = stripLeadingBulletsOrNumbers(raw)
+            .replace(/\s{2,}/g, ' ') // collapse double spaces
+            .replace(/\s*–\s*/g, ' – ') // normalize dashes spacing
+            .replace(/\s*-\s*/g, ' - ');
         const { artist, titleWithMix } = splitArtistTitle(cleaned);
         const { title, mix } = separateMix(titleWithMix);
         tracks.push({
@@ -74,5 +91,3 @@ export function parseTracklist(input: string, max: number = 100): Track[] {
     }
     return tracks;
 }
-
-

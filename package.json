@@ -11,7 +11,9 @@
     "playwright:install": "playwright install chromium",
     "mcp:smoke": "tsx scripts/mcp-smoke.ts",
     "memento:assets": "tsx scripts/generate-test-assets.ts",
-    "mcp:memento-flow": "tsx scripts/mcp-memento-flow.ts"
+    "mcp:memento-flow": "tsx scripts/mcp-memento-flow.ts",
+    "mcp:memento-templates": "tsx scripts/mcp-memento-templates.ts",
+    "memento:local-compose": "tsx scripts/local-compose.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

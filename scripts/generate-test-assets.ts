@@ -22,15 +22,23 @@ async function main() {
   const jpg = await sharp(Buffer.from(svg)).jpeg({ quality: 85 }).toBuffer();
   await fs.writeFile(path.join(dir, 'test.jpg'), jpg);
 
-  // Create a sample setlist ~40 tracks
-  const tracks = Array.from({ length: 42 }, (_, i) => {
-    const n = (i + 1).toString().padStart(2, '0');
-    return `${n}. Artist ${n} – Track Title ${n} (Extended Mix)`;
-  }).join('\n');
-  await fs.writeFile(path.join(dir, 'test.txt'), tracks, 'utf8');
+  // Create a Rekordbox-like TSV with header as in example
+  const header = ['#','Comments','Track Title','Artist','BPM','Key','My Tag','Time','Date Added','DJ Play Count'].join('\t');
+  const rows: string[] = [
+    ['1','','Free Bird - MOONLGHT Remix','Lynyrd Skynyrd','142.00','Gm','','03:09','2024-11-07','0'].join('\t'),
+    ['2','','Otis - REDD Remix (Clean)','JAY-Z & Kanye West ft. Otis Redding','124.00','Eb','','03:24','2024-11-07','1'].join('\t'),
+    ['3','','Body Pump - Sammy Virji Remix','Aluna','130.00','Bbm','','04:19','2024-11-15','0'].join('\t'),
+    ['4','','Counting - Sammy Virji Remix','Hamdi & Princess Superstar','134.00','Em','','03:35','2024-11-15','0'].join('\t'),
+    ['5','','If U Need It','Sammy Virji','132.00','Ebm','','02:57','2024-11-15','0'].join('\t'),
+    ['6','','Take That','DJ SWISHERMAN & BEADS','140.00','Fm','','04:27','2024-11-15','0'].join('\t'),
+    ['7','','Smoked Out','DJ SWISHERMAN','145.00','Fm','','05:04','2024-11-15','0'].join('\t'),
+    ['8','','Hotel Pool (DJ SWISHERMAN & Boys Noize Remix)','David Löhlein','144.00','Gm','','05:06','2024-11-15','0'].join('\t'),
+    ['9','','DIET PEPSI (ANOP\'s DREAMLAND MIX)','Addison Rae','154.00','Cm','','03:44','2024-10-05','4'].join('\t'),
+  ];
+  const tsv = [header, ...rows].join('\n');
+  await fs.writeFile(path.join(dir, 'test.txt'), tsv, 'utf8');
 
   console.log('Wrote memento/test.jpg and memento/test.txt');
 }
 
 main().catch((err) => { console.error(err); process.exit(1); });
-
