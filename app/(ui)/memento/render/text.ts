@@ -67,8 +67,19 @@ export function flowTracksToTspans(
     const firstLineY = y;
     const lineHt = fontSize * lineHeightEm;
     const linesCap = linesPerCol * cols;
-    const renderCount = Math.min(tracks.length, linesCap);
-    const omitted = Math.max(0, tracks.length - renderCount);
+    let renderCount = Math.min(tracks.length, linesCap);
+    let omitted = Math.max(0, tracks.length - renderCount);
+    // If still omitted at min font size, try squeezing by reducing line-height slightly
+    if (omitted > 0 && fontSize <= minFontSize) {
+        const tighter = Math.max(1.2, (lineHeightEm - 0.15));
+        const lineHtTight = fontSize * tighter;
+        const linesPerColTight = Math.max(1, Math.floor(height / lineHtTight));
+        if (linesPerColTight * cols >= tracks.length) {
+            linesPerCol = linesPerColTight;
+            renderCount = tracks.length;
+            omitted = 0;
+        }
+    }
 
     const colChunks: Array<Array<string>> = Array.from({ length: cols }, () => []);
     const toLine = (t: { artist: string; title: string; mix?: string }, i: number) => {
@@ -107,3 +118,10 @@ export function flowTracksToTspans(
     return { tspans, fontSize, columns: cols, rendered: renderCount, omitted };
 }
 
+export function fitTextSizeToWidth(text: string, maxWidth: number, maxFont: number, minFont = 20): number {
+    let size = maxFont;
+    // crude width estimate: average 0.6em per character
+    const estWidth = (s: number) => text.length * s * 0.6;
+    while (size > minFont && estWidth(size) > maxWidth) size -= 1;
+    return size;
+}

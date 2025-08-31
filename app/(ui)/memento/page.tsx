@@ -16,7 +16,7 @@ export default function MementoPage() {
         location: "",
         notes: "",
         tracks: [],
-        templateId: 'poster-bold',
+        templateId: 'portrait',
         subtitleVariant: 'from',
         photo: {},
     });
@@ -88,5 +88,4 @@ export default function MementoPage() {
         </div>
     );
 }
-
 

@@ -1,9 +1,4 @@
-export type TemplateId =
-    | 'poster-bold'
-    | 'minimal-card'
-    | 'neon-grid'
-    | 'story-vertical'
-    | 'polaroid-collage';
+export type TemplateId = 'portrait' | 'landscape' | 'square';
 
 export type SubtitleVariant = 'from' | 'afterparty';
 
@@ -44,5 +39,4 @@ export interface RenderPayload {
     photo: { dataUrl?: string; url?: string };
     preview?: boolean;
 }
-
 

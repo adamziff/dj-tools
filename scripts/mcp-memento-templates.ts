@@ -4,11 +4,9 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 
 const templates = [
-  { name: 'poster-bold', label: 'Poster Bold' },
-  { name: 'minimal-card', label: 'Minimal Card' },
-  { name: 'neon-grid', label: 'Neon Grid' },
-  { name: 'story-vertical', label: 'Story Vertical' },
-  { name: 'polaroid-collage', label: 'Polaroid Collage' },
+  { name: 'portrait', label: 'Portrait' },
+  { name: 'landscape', label: 'Landscape' },
+  { name: 'square', label: 'Square' },
 ];
 
 async function run() {
@@ -56,4 +54,3 @@ async function run() {
 }
 
 run().catch((err) => { console.error(err); process.exit(1); });
-
