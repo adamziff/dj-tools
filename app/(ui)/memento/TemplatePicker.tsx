@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { TemplateId, SubtitleVariant } from "./types";
+import type { TemplateId, SubtitleVariant, RenderPayload } from "./types";
 
 type Props = {
     templateId: TemplateId;
@@ -25,14 +25,14 @@ export default function TemplatePicker({ templateId, subtitleVariant, onChange }
         abortRef.current = controller;
         (async () => {
             try {
-                const base: any = { partyName: 'Preview', subtitleVariant, date: '', location: '', notes: '', tracks: [], photo: {}, preview: true };
+                const base: Omit<RenderPayload, 'templateId'> = { partyName: 'Preview', subtitleVariant, date: '', location: '', notes: '', tracks: [], photo: {}, preview: true };
                 const pairs = await Promise.all(templates.map(async (t) => {
                     const res = await fetch('/api/memento/preview', { method: 'POST', signal: controller.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...base, templateId: t.id }) });
                     if (!res.ok) return [t.id, null] as const;
                     const blob = await res.blob();
                     return [t.id, URL.createObjectURL(blob)] as const;
                 }));
-                const next: any = { portrait: null, landscape: null, square: null };
+                const next: Record<TemplateId, string | null> = { portrait: null, landscape: null, square: null };
                 for (const [id, url] of pairs) next[id] = url;
                 setThumbs(next);
             } catch { /* ignore */ }
@@ -50,6 +50,7 @@ export default function TemplatePicker({ templateId, subtitleVariant, onChange }
                     aria-pressed={templateId === t.id}
                 >
                     {thumbs[t.id] ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img src={thumbs[t.id] as string} alt={`${t.name} preview`} className="h-24 w-full rounded object-cover" />
                     ) : (
                         <div className="h-24 w-full rounded bg-muted" />
@@ -80,4 +81,3 @@ export default function TemplatePicker({ templateId, subtitleVariant, onChange }
         </div>
     );
 }
-

@@ -1,5 +1,5 @@
 import { TemplateId, SubtitleVariant, Track } from "../types";
-import { ellipsize, escapeXml, flowTracksToTspans, fitTextSizeToWidth } from "./text";
+import { escapeXml, flowTracksToTspans, fitTextSizeToWidth } from "./text";
 
 export interface TemplateConfig {
     width: number;
@@ -45,9 +45,9 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
             const titleSize = fitTextSizeToWidth(partyName, 1080 - 160, 72, 28);
             const flow = flowTracksToTspans(tracks, {
                 x: 80,
-                y: 920,
+                y: 940,  // Moved down for more spacing
                 width: 920,
-                height: 350,
+                height: 330,
                 baseFontSize: 16,
                 minFontSize: 8,
                 lineHeightEm: 1.3,
@@ -55,13 +55,6 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
                 maxColumns: 2,
             });
             const accent = `#5FC9E1`;
-            const trident = !logoDataUrl ? `
-                <g transform="translate(980,70)" stroke="${accent}" stroke-width="3" fill="none">
-                    <line x1="0" y1="0" x2="0" y2="36"/>
-                    <line x1="-10" y1="0" x2="-10" y2="30"/>
-                    <line x1="10" y1="0" x2="10" y2="30"/>
-                    <polyline points="-10,0 0,-14 10,0" />
-                </g>` : '';
             const zigzag = `<polyline points="80,170 140,160 200,170 260,160 320,170" stroke="${accent}" stroke-width="2" fill="none"/>`;
             return `<?xml version="1.0" encoding="UTF-8"?>
             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1080" height="1350">
@@ -74,9 +67,8 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
                 <rect x="64" y="160" width="952" height="760" rx="20" ry="20" fill="#333" fill-opacity="0.3" stroke="#5FC9E1" stroke-width="1"/>
                 ${zigzag}
                 <text x="80" y="120" font-family="system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
-                ${trident}
-                ${logoDataUrl ? `<image xlink:href="${logoDataUrl}" x="980" y="60" width="56" height="56" preserveAspectRatio="xMidYMid meet"/>` : ''}
-                <text x="80" y="150" font-family="system-ui, sans-serif" font-size="22" fill="#d1f5ff" letter-spacing="1">${escapeXml(subtitle)}</text>
+                ${logoDataUrl ? `<image xlink:href="${logoDataUrl}" x="900" y="40" width="120" height="80" preserveAspectRatio="xMidYMid meet"/>` : ''}
+                <text x="80" y="160" font-family="system-ui, sans-serif" font-size="22" fill="#d1f5ff" letter-spacing="1">${escapeXml(subtitle)}</text>
                 <text font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="${flow.fontSize}" fill="#fff">${flow.tspans}</text>
                 <text x="80" y="1290" font-family="system-ui, sans-serif" font-size="18" fill="#e5faff">${escapeXml([date, location].filter(Boolean).join(' • '))}</text>
             </svg>`;
@@ -120,9 +112,9 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
                 ${photoDataUrl ? `<image xlink:href="${photoDataUrl}" x="80" y="180" width="900" height="600" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClipLandscape)"/>` : ''}
                 ${zigzag}
                 <text x="80" y="120" font-family="system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
+                ${logoDataUrl ? `<image xlink:href="${logoDataUrl}" x="1400" y="40" width="160" height="100" preserveAspectRatio="xMidYMid meet"/>` : ''}
                 ${trident}
-                ${logoDataUrl ? `<image xlink:href="${logoDataUrl}" x="1520" y="90" width="56" height="56" preserveAspectRatio="xMidYMid meet"/>` : ''}
-                <text x="80" y="150" font-family="system-ui, sans-serif" font-size="22" fill="#d1f5ff">${escapeXml(subtitle)}</text>
+                <text x="80" y="160" font-family="system-ui, sans-serif" font-size="22" fill="#d1f5ff">${escapeXml(subtitle)}</text>
                 <text font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="${flow.fontSize}" fill="#eaffff">${flow.tspans}</text>
                 <text x="80" y="860" font-family="system-ui, sans-serif" font-size="18" fill="#e5faff">${escapeXml([date, location].filter(Boolean).join(' • '))}</text>
             </svg>`;
@@ -165,9 +157,9 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
                 ${photoDataUrl ? `<image xlink:href="${photoDataUrl}" x="80" y="180" width="920" height="520" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClipSquare)"/>` : ''}
                 <rect x="64" y="160" width="952" height="560" rx="20" ry="20" fill="#333" fill-opacity="0.3" stroke="#5FC9E1" stroke-width="1"/>
                 <text x="80" y="120" font-family="system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
+                ${logoDataUrl ? `<image xlink:href="${logoDataUrl}" x="900" y="40" width="120" height="80" preserveAspectRatio="xMidYMid meet"/>` : ''}
                 ${trident}
-                ${logoDataUrl ? `<image xlink:href="${logoDataUrl}" x="980" y="80" width="56" height="56" preserveAspectRatio="xMidYMid meet"/>` : ''}
-                <text x="80" y="150" font-family="system-ui, sans-serif" font-size="22" fill="#d1f5ff">${escapeXml(subtitle)}</text>
+                <text x="80" y="160" font-family="system-ui, sans-serif" font-size="22" fill="#d1f5ff">${escapeXml(subtitle)}</text>
                 <text font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="${flow.fontSize}" fill="#fff">${flow.tspans}</text>
                 <text x="80" y="1040" font-family="system-ui, sans-serif" font-size="18" fill="#e5faff">${escapeXml([date, location].filter(Boolean).join(' • '))}</text>
             </svg>`;

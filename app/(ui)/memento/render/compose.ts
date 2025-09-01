@@ -1,35 +1,10 @@
 import sharp from "sharp";
-// Remove native resvg for dev portability; Sharp can rasterize SVG sufficiently for our needs
-import { TEMPLATE_MAP } from "./templates";
+import { TEMPLATE_MAP, type BaseTemplateInput, type TemplateInput } from "./templates";
 import { RenderPayload } from "../types";
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-async function rasterizeSvg(svg: string, width: number, height: number): Promise<Buffer> {
-    return await sharp(Buffer.from(svg))
-        .resize(width, height, { fit: 'fill' })
-        .png()
-        .toBuffer();
-}
-
-async function loadPhotoBuffer(input: { dataUrl?: string; url?: string }): Promise<Buffer> {
-    if (input.dataUrl) {
-        const parts = input.dataUrl.split(",");
-        if (parts.length !== 2) {
-            throw new Error(`Invalid dataUrl format: expected "data:mime;base64,data" but got ${parts.length} parts`);
-        }
-        const b64 = parts[1];
-        return Buffer.from(b64, "base64");
-    }
-    if (input.url) {
-        const res = await fetch(input.url);
-        if (!res.ok) throw new Error(`Failed to fetch image: ${res.status}`);
-        return Buffer.from(await res.arrayBuffer());
-    }
-    throw new Error("No image provided");
-}
-
-async function estimateDominantColorHex(img: sharp.Sharp, width: number, height: number): Promise<string | undefined> {
+async function estimateDominantColorHex(img: sharp.Sharp): Promise<string | undefined> {
     try {
         const buf = await img.clone().resize(32, 32, { fit: 'cover' }).raw().toBuffer();
         // simple average color
@@ -56,14 +31,24 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
 
     // Optional background SVG (e.g., neon grid)
     if (template.backgroundSvg) {
-        const bgSvg = template.backgroundSvg(payload as any);
+        const bgOpts: BaseTemplateInput = {
+            partyName: payload.partyName,
+            subtitleVariant: payload.subtitleVariant,
+            date: payload.date,
+            location: payload.location,
+            notes: payload.notes,
+            dominantColorHex: undefined,
+            logoDataUrl: undefined,
+            photoDataUrl: payload.photo?.dataUrl,
+        };
+        const bgSvg = template.backgroundSvg(bgOpts);
         base = base.composite([{ input: Buffer.from(bgSvg), left: 0, top: 0 }]);
     }
 
     // Photo will be embedded directly in SVG now, so no Sharp compositing needed
 
     // Overlay SVG
-    const dominantColorHex = await estimateDominantColorHex(base, width, height);
+    const dominantColorHex = await estimateDominantColorHex(base);
     // Load logo from memento/logo.svg or logo.png if requested
     let logoDataUrl: string | undefined;
     try {
@@ -77,7 +62,7 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
             logoDataUrl = `data:${mime};base64,${buf.toString('base64')}`;
         }
     } catch {}
-    const overlaySvg = template.overlaySvg({
+    const overlayOpts: TemplateInput = {
         partyName: payload.partyName,
         subtitleVariant: payload.subtitleVariant,
         date: payload.date,
@@ -87,7 +72,8 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
         dominantColorHex,
         logoDataUrl,
         photoDataUrl: payload.photo?.dataUrl,
-    } as any);
+    };
+    const overlaySvg = template.overlaySvg(overlayOpts);
     // Scale the SVG to match the canvas size
     const scaledSvg = await sharp(Buffer.from(overlaySvg))
         .resize(width * scale, height * scale, { fit: 'fill' })

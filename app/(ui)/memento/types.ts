@@ -11,6 +11,7 @@ export interface Track {
 }
 
 export interface MementoPhoto {
+    dataUrl?: string;
     file?: File;
     url?: string;
     mime?: string;

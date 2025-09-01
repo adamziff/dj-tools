@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { MementoState, RenderPayload, Track } from "./types";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { MementoState, RenderPayload } from "./types";
 
 type Props = {
     state: MementoState;
@@ -12,23 +12,31 @@ export default function LivePreview({ state }: Props) {
     const abortRef = useRef<AbortController | null>(null);
     const [loading, setLoading] = useState(false);
 
+    const photoSig = state.photo?.dataUrl ?? "";
+
+    const includedTracks = useMemo(() => (
+        state.tracks.filter((t) => t.included).map(({ artist, title, mix }) => ({ artist, title, mix }))
+    ), [state.tracks]);
+
+    const previewBody = useMemo<RenderPayload>(() => ({
+        partyName: state.partyName,
+        subtitleVariant: state.subtitleVariant,
+        templateId: state.templateId,
+        date: state.date,
+        location: state.location,
+        notes: state.notes,
+        tracks: includedTracks,
+        photo: { dataUrl: photoSig },
+        preview: true,
+        showLogo: state.showLogo,
+    }), [state.partyName, state.subtitleVariant, state.templateId, state.date, state.location, state.notes, includedTracks, photoSig, state.showLogo]);
+
     useEffect(() => {
         const controller = new AbortController();
         abortRef.current?.abort();
         abortRef.current = controller;
 
-        const body: RenderPayload = {
-            partyName: state.partyName,
-            subtitleVariant: state.subtitleVariant,
-            templateId: state.templateId,
-            date: state.date,
-            location: state.location,
-            notes: state.notes,
-            tracks: state.tracks.filter((t) => t.included).map(({ artist, title, mix }) => ({ artist, title, mix })),
-            photo: state.photo,
-            preview: true,
-            showLogo: state.showLogo,
-        };
+        const body: RenderPayload = previewBody;
 
         const timeout = setTimeout(async () => {
             try {
@@ -41,7 +49,7 @@ export default function LivePreview({ state }: Props) {
                 }
                 const blob = await res.blob();
                 setSrc(URL.createObjectURL(blob));
-            } catch (_) {
+            } catch {
                 // ignore; likely aborted or network issue
             } finally { setLoading(false); }
         }, 400);
@@ -50,7 +58,7 @@ export default function LivePreview({ state }: Props) {
             clearTimeout(timeout);
             controller.abort();
         };
-    }, [state.partyName, state.subtitleVariant, state.templateId, state.date, state.location, state.notes, JSON.stringify(state.tracks), state.photo?.dataUrl, state.showLogo]);
+    }, [previewBody]);
 
     return (
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg border bg-muted">
@@ -60,6 +68,8 @@ export default function LivePreview({ state }: Props) {
                 </div>
             )}
             {src ? (
+                // next/image does not support object URLs well; this preview uses a blob URL
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={src} alt="Memento preview" className="h-full w-full object-contain" />
             ) : (
                 <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Preview will appear here</div>
@@ -67,4 +77,3 @@ export default function LivePreview({ state }: Props) {
         </div>
     );
 }
-

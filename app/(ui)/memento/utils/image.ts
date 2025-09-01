@@ -13,9 +13,10 @@ export async function maybeConvertHeicToPng(file: File): Promise<File | Blob> {
     }
     try {
         const mod = await import('heic2any');
-        const blob = await (mod.default as any)({ blob: file, toType: 'image/png' });
+        const heic2any = (mod as { default: (opts: { blob: Blob; toType: string }) => Promise<Blob> }).default;
+        const blob = await heic2any({ blob: file, toType: 'image/png' });
         return blob as Blob;
-    } catch (_) {
+    } catch {
         // Fallback: return original; server may try to decode
         return file;
     }
@@ -26,10 +27,10 @@ export async function downscaleDataUrl(
     maxDim: number = 1600,
     quality: number = 0.85
 ): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
-            let { width, height } = img as HTMLImageElement;
+            const { width, height } = img as HTMLImageElement;
             const scale = Math.min(1, maxDim / Math.max(width, height));
             const w = Math.max(1, Math.round(width * scale));
             const h = Math.max(1, Math.round(height * scale));
@@ -47,4 +48,3 @@ export async function downscaleDataUrl(
         img.src = dataUrl;
     });
 }
-

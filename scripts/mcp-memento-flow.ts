@@ -2,6 +2,10 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import path from 'node:path';
 
+type ScreenshotResult = {
+  content?: Array<{ type: string; data?: string }>;
+};
+
 async function run() {
   const transport = new StdioClientTransport({
     command: 'pnpm',
@@ -38,8 +42,8 @@ async function run() {
   
   // Add a small delay to ensure all processing is complete
   await new Promise(resolve => setTimeout(resolve, 1000));
-  const shot = await client.callTool({ name: 'screenshot', arguments: { fullPage: true } });
-  const imageItem = shot?.content?.find((c: any) => c.type === 'image');
+  const shot = await client.callTool({ name: 'screenshot', arguments: { fullPage: true } }) as unknown as ScreenshotResult;
+  const imageItem = shot?.content?.find((c) => c.type === 'image');
   if (imageItem) {
     const fs = await import('node:fs/promises');
     const path = await import('node:path');

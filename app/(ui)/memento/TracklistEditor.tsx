@@ -16,15 +16,8 @@ export default function TracklistEditor({ initialText = "", tracks, onChange }: 
     const [fileName, setFileName] = useState<string | null>(null);
     const [lastParsedCount, setLastParsedCount] = useState<number | null>(null);
 
-    // Removed auto-parse effect to avoid update loops; parsing is explicit via button or file upload
-
     const includedCount = useMemo(() => tracks.filter((t) => t.included).length, [tracks]);
 
-    function parseNow() {
-        if (raw.trim().length === 0) return;
-        const parsed = parseTracklist(raw);
-        onChange(parsed);
-    }
 
     return (
         <div className="grid gap-4">
@@ -124,5 +117,4 @@ export default function TracklistEditor({ initialText = "", tracks, onChange }: 
         </div>
     );
 }
-
 

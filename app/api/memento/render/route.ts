@@ -24,10 +24,11 @@ export async function POST(req: NextRequest) {
             console.log('[memento/render] no photo provided');
         }
         const buf = await composeMemento({ ...body, preview: false });
-        return new Response(buf, { headers: { 'Content-Type': 'image/png' } });
+        const u8 = new Uint8Array(buf);
+        const blob = new Blob([u8], { type: 'image/png' });
+        return new Response(blob, { headers: { 'Content-Type': 'image/png' } });
     } catch (err) {
         console.error('[memento/render] error', err);
         return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
     }
 }
-

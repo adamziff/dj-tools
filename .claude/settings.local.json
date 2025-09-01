@@ -6,7 +6,8 @@
       "Bash(cd:*)",
       "Bash(cd:*)",
       "Bash(pnpm mcp:memento-flow:*)",
-      "Read(/dev/**)"
+      "Read(/dev/**)",
+      "Bash(pnpm build:*)"
     ],
     "deny": [],
     "ask": []

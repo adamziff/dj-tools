@@ -3,6 +3,10 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+type ScreenshotResult = {
+  content?: Array<{ type: string; data?: string }>;
+};
+
 async function run() {
   const transport = new StdioClientTransport({
     command: 'pnpm',
@@ -18,8 +22,8 @@ async function run() {
   await client.callTool({ name: 'navigate', arguments: { url } });
   await client.callTool({ name: 'wait_for', arguments: { selector: 'body', state: 'visible' } });
 
-  const result = await client.callTool({ name: 'screenshot', arguments: { fullPage: true } });
-  const imageItem = result?.content?.find((c: any) => c.type === 'image');
+  const result = await client.callTool({ name: 'screenshot', arguments: { fullPage: true } }) as unknown as ScreenshotResult;
+  const imageItem = result?.content?.find((c) => c.type === 'image');
   if (!imageItem) throw new Error('No image returned from screenshot');
   const b64 = imageItem.data as string;
 
@@ -36,4 +40,3 @@ run().catch((err) => {
   console.error('[smoke] Failed:', err);
   process.exit(1);
 });
-

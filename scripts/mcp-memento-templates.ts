@@ -3,6 +3,10 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
+type ScreenshotResult = {
+  content?: Array<{ type: string; data?: string }>;
+};
+
 const templates = [
   { name: 'portrait', label: 'Portrait' },
   { name: 'landscape', label: 'Landscape' },
@@ -41,8 +45,8 @@ async function run() {
   for (const t of templates) {
     await client.callTool({ name: 'click', arguments: { selector: `button:has-text("${t.label}")` } });
     await client.callTool({ name: 'wait_for', arguments: { selector: 'img[alt="Memento preview"]', state: 'visible' } });
-    const shot = await client.callTool({ name: 'screenshot', arguments: { fullPage: true } });
-    const imageItem = shot?.content?.find((c: any) => c.type === 'image');
+    const shot = await client.callTool({ name: 'screenshot', arguments: { fullPage: true } }) as unknown as ScreenshotResult;
+    const imageItem = shot?.content?.find((c) => c.type === 'image');
     if (imageItem) {
       const outPath = path.join(outDir, `memento-${t.name}.png`);
       await fs.writeFile(outPath, Buffer.from((imageItem as any).data, 'base64'));
