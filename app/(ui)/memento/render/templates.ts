@@ -38,20 +38,20 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
         width: 1080,
         height: 1350,
         // show the whole photo, never crop
-        photoPlacement: { mode: 'rect', x: 80, y: 180, width: 920, height: 620, fit: 'cover', cornerRadius: 16 },
+        photoPlacement: { mode: 'rect', x: 80, y: 180, width: 920, height: 720, fit: 'cover', cornerRadius: 16 },
         overlaySvg: (opts) => {
             const { partyName, subtitleVariant, date, location, tracks, logoDataUrl, photoDataUrl } = opts as TemplateInput & { logoDataUrl?: string; photoDataUrl?: string };
             const subtitle = subtitleVariant === 'from' ? 'From DJ Ziff' : 'DJ Ziff Afterparty Setlist';
             const titleSize = fitTextSizeToWidth(partyName, 1080 - 160, 72, 28);
             const flow = flowTracksToTspans(tracks, {
                 x: 80,
-                y: 840,
+                y: 920,
                 width: 920,
-                height: 430,
-                baseFontSize: 20,
-                minFontSize: 10,
-                lineHeightEm: 1.4,
-                gap: 24,
+                height: 350,
+                baseFontSize: 16,
+                minFontSize: 8,
+                lineHeightEm: 1.3,
+                gap: 18,
                 maxColumns: 2,
             });
             const accent = `#5FC9E1`;
@@ -67,11 +67,11 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1080" height="1350">
                 <defs>
                     <clipPath id="photoClip">
-                        <rect x="80" y="180" width="920" height="620" rx="16" ry="16"/>
+                        <rect x="80" y="180" width="920" height="720" rx="16" ry="16"/>
                     </clipPath>
                 </defs>
-                ${photoDataUrl ? `<image xlink:href="${photoDataUrl}" x="80" y="180" width="920" height="620" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClip)"/>` : ''}
-                <rect x="64" y="160" width="952" height="660" rx="20" ry="20" fill="#333" fill-opacity="0.3" stroke="#5FC9E1" stroke-width="1"/>
+                ${photoDataUrl ? `<image xlink:href="${photoDataUrl}" x="80" y="180" width="920" height="720" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClip)"/>` : ''}
+                <rect x="64" y="160" width="952" height="760" rx="20" ry="20" fill="#333" fill-opacity="0.3" stroke="#5FC9E1" stroke-width="1"/>
                 ${zigzag}
                 <text x="80" y="120" font-family="system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
                 ${trident}
@@ -85,9 +85,9 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
     landscape: {
         width: 1600,
         height: 900,
-        photoPlacement: { mode: 'rect', x: 80, y: 180, width: 900, height: 600, fit: 'contain', cornerRadius: 16 },
+        photoPlacement: { mode: 'rect', x: 80, y: 180, width: 900, height: 600, fit: 'cover', cornerRadius: 16 },
         overlaySvg: (opts) => {
-            const { partyName, subtitleVariant, date, location, tracks, logoDataUrl } = opts as TemplateInput & { logoDataUrl?: string };
+            const { partyName, subtitleVariant, date, location, tracks, logoDataUrl, photoDataUrl } = opts as TemplateInput & { logoDataUrl?: string; photoDataUrl?: string };
             const subtitle = subtitleVariant === 'from' ? 'From DJ Ziff' : 'DJ Ziff Afterparty Setlist';
             const titleSize = fitTextSizeToWidth(partyName, 1500 - 160, 64, 26);
             const flow = flowTracksToTspans(tracks, {
@@ -111,11 +111,17 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
                     <polyline points="-10,0 0,-14 10,0" />
                 </g>` : '';
             return `<?xml version="1.0" encoding="UTF-8"?>
-            <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900">
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="900">
+                <defs>
+                    <clipPath id="photoClipLandscape">
+                        <rect x="80" y="180" width="900" height="600" rx="16" ry="16"/>
+                    </clipPath>
+                </defs>
+                ${photoDataUrl ? `<image xlink:href="${photoDataUrl}" x="80" y="180" width="900" height="600" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClipLandscape)"/>` : ''}
                 ${zigzag}
                 <text x="80" y="120" font-family="system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
                 ${trident}
-                ${logoDataUrl ? `<image href="${logoDataUrl}" x="1520" y="90" width="56" height="56"/>` : ''}
+                ${logoDataUrl ? `<image xlink:href="${logoDataUrl}" x="1520" y="90" width="56" height="56" preserveAspectRatio="xMidYMid meet"/>` : ''}
                 <text x="80" y="150" font-family="system-ui, sans-serif" font-size="22" fill="#d1f5ff">${escapeXml(subtitle)}</text>
                 <text font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="${flow.fontSize}" fill="#eaffff">${flow.tspans}</text>
                 <text x="80" y="860" font-family="system-ui, sans-serif" font-size="18" fill="#e5faff">${escapeXml([date, location].filter(Boolean).join(' • '))}</text>
@@ -125,9 +131,9 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
     square: {
         width: 1080,
         height: 1080,
-        photoPlacement: { mode: 'rect', x: 80, y: 180, width: 920, height: 520, fit: 'contain', cornerRadius: 16 },
+        photoPlacement: { mode: 'rect', x: 80, y: 180, width: 920, height: 520, fit: 'cover', cornerRadius: 16 },
         overlaySvg: (opts) => {
-            const { partyName, subtitleVariant, date, location, tracks, logoDataUrl } = opts as TemplateInput & { logoDataUrl?: string };
+            const { partyName, subtitleVariant, date, location, tracks, logoDataUrl, photoDataUrl } = opts as TemplateInput & { logoDataUrl?: string; photoDataUrl?: string };
             const subtitle = subtitleVariant === 'from' ? 'From DJ Ziff' : 'DJ Ziff Afterparty Setlist';
             const titleSize = fitTextSizeToWidth(partyName, 1080 - 160, 64, 26);
             const flow = flowTracksToTspans(tracks, {
@@ -150,11 +156,17 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
                     <polyline points="-10,0 0,-14 10,0" />
                 </g>` : '';
             return `<?xml version="1.0" encoding="UTF-8"?>
-            <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080">
-                <rect x="64" y="160" width="952" height="560" rx="20" ry="20" fill="#000" fill-opacity="0.12"/>
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1080" height="1080">
+                <defs>
+                    <clipPath id="photoClipSquare">
+                        <rect x="80" y="180" width="920" height="520" rx="16" ry="16"/>
+                    </clipPath>
+                </defs>
+                ${photoDataUrl ? `<image xlink:href="${photoDataUrl}" x="80" y="180" width="920" height="520" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClipSquare)"/>` : ''}
+                <rect x="64" y="160" width="952" height="560" rx="20" ry="20" fill="#333" fill-opacity="0.3" stroke="#5FC9E1" stroke-width="1"/>
                 <text x="80" y="120" font-family="system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
                 ${trident}
-                ${logoDataUrl ? `<image href="${logoDataUrl}" x="980" y="80" width="56" height="56"/>` : ''}
+                ${logoDataUrl ? `<image xlink:href="${logoDataUrl}" x="980" y="80" width="56" height="56" preserveAspectRatio="xMidYMid meet"/>` : ''}
                 <text x="80" y="150" font-family="system-ui, sans-serif" font-size="22" fill="#d1f5ff">${escapeXml(subtitle)}</text>
                 <text font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="${flow.fontSize}" fill="#fff">${flow.tspans}</text>
                 <text x="80" y="1040" font-family="system-ui, sans-serif" font-size="18" fill="#e5faff">${escapeXml([date, location].filter(Boolean).join(' • '))}</text>

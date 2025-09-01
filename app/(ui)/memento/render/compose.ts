@@ -48,11 +48,11 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
     if (!template) throw new Error("Unknown template");
 
     const scale = payload.preview ? 1 : 2;
-    const width = template.width * scale;
-    const height = template.height * scale;
+    const width = template.width;
+    const height = template.height;
 
-    // Base canvas starts as empty black; for full-cover photos we will replace with the photo directly
-    let base = sharp({ create: { width, height, channels: 3, background: { r: 0, g: 0, b: 0 } } }).png();
+    // Base canvas starts as empty black
+    let base = sharp({ create: { width: width * scale, height: height * scale, channels: 3, background: { r: 0, g: 0, b: 0 } } }).png();
 
     // Optional background SVG (e.g., neon grid)
     if (template.backgroundSvg) {
@@ -88,7 +88,13 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
         logoDataUrl,
         photoDataUrl: payload.photo?.dataUrl,
     } as any);
-    base = base.composite([{ input: Buffer.from(overlaySvg), left: 0, top: 0 }]);
+    // Scale the SVG to match the canvas size
+    const scaledSvg = await sharp(Buffer.from(overlaySvg))
+        .resize(width * scale, height * scale, { fit: 'fill' })
+        .png()
+        .toBuffer();
+        
+    base = base.composite([{ input: scaledSvg, left: 0, top: 0 }]);
 
     return base.png({ compressionLevel: 9 }).toBuffer();
 }
