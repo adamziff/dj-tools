@@ -19,8 +19,12 @@ export default function MementoPage() {
         templateId: 'portrait',
         subtitleVariant: 'from',
         photo: {},
+        showLogo: true,
     });
     const [photoDataUrl, setPhotoDataUrl] = useState<string | undefined>(undefined);
+    
+    // Sync photo data with main state
+    const stateWithPhoto = { ...state, photo: { dataUrl: photoDataUrl } };
 
     return (
         <div className="mx-auto max-w-5xl px-4 py-8">
@@ -70,6 +74,14 @@ export default function MementoPage() {
                             subtitleVariant={state.subtitleVariant}
                             onChange={(t) => setState((s) => ({ ...s, ...t }))}
                         />
+                        <label className="mt-3 inline-flex items-center gap-2 text-sm">
+                            <input
+                                type="checkbox"
+                                checked={!!state.showLogo}
+                                onChange={(e) => setState((s) => ({ ...s, showLogo: e.target.checked }))}
+                            />
+                            <span>Show logo</span>
+                        </label>
                     </div>
                 </section>
 
@@ -78,9 +90,9 @@ export default function MementoPage() {
                         4. Preview
                     </h2>
                     <div className="mt-3 grid gap-4 md:grid-cols-2">
-                        <LivePreview state={{ ...state, photoDataUrl }} />
+                        <LivePreview state={stateWithPhoto} />
                         <div className="rounded-lg border p-4">
-                            <ExportBar state={{ ...state, photoDataUrl }} />
+                            <ExportBar state={stateWithPhoto} />
                         </div>
                     </div>
                 </section>
@@ -88,4 +100,3 @@ export default function MementoPage() {
         </div>
     );
 }
-

@@ -7,7 +7,7 @@ async function run() {
   const data = await fs.readFile(jpgPath);
   const dataUrl = `data:image/jpeg;base64,${data.toString('base64')}`;
   const payload = {
-    templateId: 'poster-bold',
+    templateId: 'portrait',
     partyName: 'Local Compose Test',
     subtitleVariant: 'from',
     date: '2025-08-29',
@@ -29,4 +29,3 @@ async function run() {
 }
 
 run().catch((e) => { console.error(e); process.exit(1); });
-

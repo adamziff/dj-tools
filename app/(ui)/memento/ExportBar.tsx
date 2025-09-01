@@ -4,7 +4,7 @@ import { slugify } from "./utils/slugify";
 import type { MementoState, RenderPayload } from "./types";
 
 type Props = {
-    state: Omit<MementoState, 'photo'> & { photoDataUrl?: string };
+    state: MementoState;
 };
 
 export default function ExportBar({ state }: Props) {
@@ -19,8 +19,9 @@ export default function ExportBar({ state }: Props) {
             location: state.location,
             notes: state.notes,
             tracks: state.tracks.filter((t) => t.included).map(({ artist, title, mix }) => ({ artist, title, mix })),
-            photo: { dataUrl: state.photoDataUrl },
+            photo: state.photo,
             preview: false,
+            showLogo: state.showLogo,
         };
         const res = await fetch('/api/memento/render', { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } });
         if (!res.ok) {
@@ -45,5 +46,4 @@ export default function ExportBar({ state }: Props) {
         </div>
     );
 }
-
 

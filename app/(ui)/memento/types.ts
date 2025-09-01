@@ -26,6 +26,7 @@ export interface MementoState {
     subtitleVariant: SubtitleVariant;
     colorScheme?: string;
     photo: MementoPhoto;
+    showLogo?: boolean;
 }
 
 export interface RenderPayload {
@@ -38,5 +39,5 @@ export interface RenderPayload {
     tracks: Array<Pick<Track, 'artist' | 'title' | 'mix'>>;
     photo: { dataUrl?: string; url?: string };
     preview?: boolean;
+    showLogo?: boolean;
 }
-

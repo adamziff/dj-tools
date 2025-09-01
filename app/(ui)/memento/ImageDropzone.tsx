@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { fileToDataUrl, maybeConvertHeicToPng } from "./utils/image";
+import { fileToDataUrl, maybeConvertHeicToPng, downscaleDataUrl } from "./utils/image";
 
 type Props = {
     value?: string | null;
@@ -16,7 +16,9 @@ export default function ImageDropzone({ value, onChange }: Props) {
         if (!files || !files.length) return;
         const file = files[0];
         const converted = await maybeConvertHeicToPng(file);
-        const dataUrl = await fileToDataUrl(converted as File);
+        const originalDataUrl = await fileToDataUrl(converted as File);
+        // Downscale to keep request payloads well below Next.js body limits
+        const dataUrl = await downscaleDataUrl(originalDataUrl, 1600, 0.85);
         onChange(dataUrl);
     }, [onChange]);
 
@@ -57,5 +59,4 @@ export default function ImageDropzone({ value, onChange }: Props) {
         </div>
     );
 }
-
 

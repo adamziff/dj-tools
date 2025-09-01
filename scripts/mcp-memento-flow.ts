@@ -24,14 +24,20 @@ async function run() {
   await client.callTool({ name: 'fill', arguments: { selector: 'input[type="date"]', value: '2025-08-29' } });
   await client.callTool({ name: 'fill', arguments: { selector: 'label:has-text("Location") input', value: 'Brooklyn, NY' } });
 
-  // Upload image via first image accept input
+  // Upload image via file input
   await client.callTool({ name: 'set_input_files', arguments: { selector: 'input[accept*="image"]', files: photoPath } });
+  
+  // Wait for photo processing to complete - look for the "Photo added" text
+  await client.callTool({ name: 'wait_for', arguments: { selector: 'text=Photo added', state: 'visible' } });
 
   // Upload tracklist file
   await client.callTool({ name: 'set_input_files', arguments: { selector: 'input[accept*="text/plain"]', files: textPath } });
 
   // Wait for preview image to appear and settle
   await client.callTool({ name: 'wait_for', arguments: { selector: 'img[alt="Memento preview"]', state: 'visible' } });
+  
+  // Add a small delay to ensure all processing is complete
+  await new Promise(resolve => setTimeout(resolve, 1000));
   const shot = await client.callTool({ name: 'screenshot', arguments: { fullPage: true } });
   const imageItem = shot?.content?.find((c: any) => c.type === 'image');
   if (imageItem) {

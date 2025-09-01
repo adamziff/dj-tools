@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { MementoState, RenderPayload, Track } from "./types";
 
 type Props = {
-    state: Omit<MementoState, 'photo'> & { photoDataUrl?: string };
+    state: MementoState;
 };
 
 export default function LivePreview({ state }: Props) {
@@ -25,8 +25,9 @@ export default function LivePreview({ state }: Props) {
             location: state.location,
             notes: state.notes,
             tracks: state.tracks.filter((t) => t.included).map(({ artist, title, mix }) => ({ artist, title, mix })),
-            photo: { dataUrl: state.photoDataUrl },
+            photo: state.photo,
             preview: true,
+            showLogo: state.showLogo,
         };
 
         const timeout = setTimeout(async () => {
@@ -49,7 +50,7 @@ export default function LivePreview({ state }: Props) {
             clearTimeout(timeout);
             controller.abort();
         };
-    }, [state.partyName, state.subtitleVariant, state.templateId, state.date, state.location, state.notes, JSON.stringify(state.tracks), state.photoDataUrl]);
+    }, [state.partyName, state.subtitleVariant, state.templateId, state.date, state.location, state.notes, JSON.stringify(state.tracks), state.photo?.dataUrl, state.showLogo]);
 
     return (
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg border bg-muted">
@@ -66,5 +67,4 @@ export default function LivePreview({ state }: Props) {
         </div>
     );
 }
-
 

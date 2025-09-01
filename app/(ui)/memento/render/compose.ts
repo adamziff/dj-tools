@@ -2,6 +2,8 @@ import sharp from "sharp";
 // Remove native resvg for dev portability; Sharp can rasterize SVG sufficiently for our needs
 import { TEMPLATE_MAP } from "./templates";
 import { RenderPayload } from "../types";
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
 async function rasterizeSvg(svg: string, width: number, height: number): Promise<Buffer> {
     return await sharp(Buffer.from(svg))
@@ -12,7 +14,11 @@ async function rasterizeSvg(svg: string, width: number, height: number): Promise
 
 async function loadPhotoBuffer(input: { dataUrl?: string; url?: string }): Promise<Buffer> {
     if (input.dataUrl) {
-        const b64 = input.dataUrl.split(",")[1];
+        const parts = input.dataUrl.split(",");
+        if (parts.length !== 2) {
+            throw new Error(`Invalid dataUrl format: expected "data:mime;base64,data" but got ${parts.length} parts`);
+        }
+        const b64 = parts[1];
         return Buffer.from(b64, "base64");
     }
     if (input.url) {
@@ -54,46 +60,23 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
         base = base.composite([{ input: Buffer.from(bgSvg), left: 0, top: 0 }]);
     }
 
-    // Photo layer according to template placement
-    try {
-        const photoBuf = await loadPhotoBuffer(payload.photo);
-        const placement = template.photoPlacement;
-        if (placement.mode === 'cover') {
-            let img = sharp(photoBuf).resize(width, height, { fit: 'cover', position: 'centre' }).modulate({ brightness: 1.08 });
-            if (template.backgroundEffects?.blur) {
-                img = img.blur(template.backgroundEffects.blur);
-            }
-            const resized = await img.toBuffer();
-            // Use the photo as the base image to guarantee visibility
-            base = sharp(resized);
-            if (template.backgroundEffects?.dim) {
-                const dimLevel = Math.max(0, Math.min(1, template.backgroundEffects.dim));
-                const overlay = Buffer.from(`<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="black" fill-opacity="${dimLevel}"/></svg>`);
-                base = base.composite([{ input: overlay, left: 0, top: 0 }]);
-            }
-        } else {
-            const x = Math.round(placement.x * scale);
-            const y = Math.round(placement.y * scale);
-            const w = Math.round(placement.width * scale);
-            const h = Math.round(placement.height * scale);
-            let img = sharp(photoBuf).resize(w, h, { fit: placement.fit ?? 'cover', position: 'centre' });
-            if (placement.rotate) {
-                img = img.rotate(placement.rotate);
-            }
-            let buffer = await img.toBuffer();
-            if (placement.cornerRadius && placement.cornerRadius > 0) {
-                const r = Math.round(placement.cornerRadius * scale);
-                const mask = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect x="0" y="0" width="${w}" height="${h}" rx="${r}" ry="${r}"/></svg>`);
-                buffer = await sharp(buffer).composite([{ input: mask, blend: 'dest-in' }]).toBuffer();
-            }
-            base = base.composite([{ input: buffer, left: x, top: y }]);
-        }
-    } catch (_) {
-        // If photo missing/unreadable, proceed with just background/overlay
-    }
+    // Photo will be embedded directly in SVG now, so no Sharp compositing needed
 
     // Overlay SVG
     const dominantColorHex = await estimateDominantColorHex(base, width, height);
+    // Load logo from memento/logo.svg or logo.png if requested
+    let logoDataUrl: string | undefined;
+    try {
+        const root = process.cwd();
+        const tryRead = async (p: string) => { try { return await fs.readFile(p); } catch { return null; } };
+        const svg = await tryRead(path.join(root, 'memento', 'logo.svg'));
+        const png = svg ? null : await tryRead(path.join(root, 'memento', 'logo.png'));
+        const buf = svg ?? png;
+        if (buf && (payload.showLogo ?? false)) {
+            const mime = svg ? 'image/svg+xml' : 'image/png';
+            logoDataUrl = `data:${mime};base64,${buf.toString('base64')}`;
+        }
+    } catch {}
     const overlaySvg = template.overlaySvg({
         partyName: payload.partyName,
         subtitleVariant: payload.subtitleVariant,
@@ -102,6 +85,8 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
         notes: payload.notes,
         tracks: payload.tracks,
         dominantColorHex,
+        logoDataUrl,
+        photoDataUrl: payload.photo?.dataUrl,
     } as any);
     base = base.composite([{ input: Buffer.from(overlaySvg), left: 0, top: 0 }]);
 
