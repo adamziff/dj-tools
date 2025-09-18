@@ -3,7 +3,6 @@ import { TEMPLATE_MAP, type BaseTemplateInput, type TemplateInput } from "./temp
 import { RenderPayload } from "../types";
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { Resvg } from '@resvg/resvg-js';
 
 async function estimateDominantColorHex(img: sharp.Sharp): Promise<string | undefined> {
     try {
@@ -89,14 +88,13 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
         overlaySvg = overlaySvg.replace(/<svg([^>]*)>/, (m) => `${m}${style}`);
     } catch {}
 
-    const renderer = new Resvg(overlaySvg, {
-        fitTo: { mode: 'zoom', value: scale },
-        font: { loadSystemFonts: false, defaultFontFamily: 'Geist' },
-    });
-    const rendered = renderer.render();
-    const scaledPng = Buffer.from(rendered.asPng());
-    
-    base = base.composite([{ input: scaledPng, left: 0, top: 0 }]);
+    // Rasterize SVG with Sharp; fonts are embedded in the SVG so rendering is consistent
+    const scaledSvg = await sharp(Buffer.from(overlaySvg))
+        .resize(width * scale, height * scale, { fit: 'fill' })
+        .png()
+        .toBuffer();
+
+    base = base.composite([{ input: scaledSvg, left: 0, top: 0 }]);
 
     return base.png({ compressionLevel: 9 }).toBuffer();
 }
