@@ -12,8 +12,7 @@ export async function POST(req: NextRequest) {
         }
         const buf = await composeMemento({ ...body, preview: true });
         const u8 = new Uint8Array(buf);
-        const blob = new Blob([u8], { type: 'image/png' });
-        return new Response(blob, { headers: { 'Content-Type': 'image/png' } });
+        return new Response(u8, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' } });
     } catch (err) {
         console.error('[memento/preview] error', err);
         return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { 'Content-Type': 'application/json' } });

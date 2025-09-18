@@ -11,6 +11,7 @@ export default function LivePreview({ state }: Props) {
     const [src, setSrc] = useState<string | null>(null);
     const abortRef = useRef<AbortController | null>(null);
     const [loading, setLoading] = useState(false);
+    const urlRef = useRef<string | null>(null);
 
     const photoSig = state.photo?.dataUrl ?? "";
 
@@ -48,7 +49,13 @@ export default function LivePreview({ state }: Props) {
                     return;
                 }
                 const blob = await res.blob();
-                setSrc(URL.createObjectURL(blob));
+                const nextUrl = URL.createObjectURL(blob);
+                const prev = urlRef.current;
+                urlRef.current = nextUrl;
+                setSrc(nextUrl);
+                if (prev) {
+                    try { URL.revokeObjectURL(prev); } catch {}
+                }
             } catch {
                 // ignore; likely aborted or network issue
             } finally { setLoading(false); }
@@ -60,8 +67,9 @@ export default function LivePreview({ state }: Props) {
         };
     }, [previewBody]);
 
+    const aspect = state.templateId === 'portrait' ? 'aspect-[4/5]' : state.templateId === 'landscape' ? 'aspect-[16/9]' : 'aspect-square';
     return (
-        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg border bg-muted">
+        <div className={`relative ${aspect} w-full overflow-hidden rounded-lg border bg-muted`}>
             {loading && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center">
                     <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />

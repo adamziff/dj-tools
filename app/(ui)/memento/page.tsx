@@ -72,6 +72,18 @@ export default function MementoPage() {
                         <TemplatePicker
                             templateId={state.templateId}
                             subtitleVariant={state.subtitleVariant}
+                            previewBase={{
+                                partyName: state.partyName || 'Preview',
+                                subtitleVariant: state.subtitleVariant,
+                                date: state.date,
+                                location: state.location,
+                                notes: state.notes,
+                                // Only include tracks marked included
+                                tracks: state.tracks.filter((t) => t.included).map(({ artist, title, mix }) => ({ artist, title, mix })),
+                                photo: { dataUrl: photoDataUrl },
+                                preview: true,
+                                showLogo: state.showLogo,
+                            }}
                             onChange={(t) => setState((s) => ({ ...s, ...t }))}
                         />
                         <label className="mt-3 inline-flex items-center gap-2 text-sm">

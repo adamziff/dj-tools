@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { TemplateId, SubtitleVariant, RenderPayload } from "./types";
 
 type Props = {
     templateId: TemplateId;
     subtitleVariant: SubtitleVariant;
+    // Optional: provide current data to render more accurate low-res previews
+    previewBase?: Omit<RenderPayload, 'templateId'>;
     onChange: (t: { templateId: TemplateId; subtitleVariant: SubtitleVariant }) => void;
 };
 
@@ -15,30 +17,70 @@ const templates: Array<{ id: TemplateId; name: string }> = [
     { id: 'square', name: 'Square' },
 ];
 
-export default function TemplatePicker({ templateId, subtitleVariant, onChange }: Props) {
+export default function TemplatePicker({ templateId, subtitleVariant, previewBase, onChange }: Props) {
     const [thumbs, setThumbs] = useState<Record<TemplateId, string | null>>({ portrait: null, landscape: null, square: null });
     const abortRef = useRef<AbortController | null>(null);
+    const urlRef = useRef<Record<TemplateId, string | null>>({ portrait: null, landscape: null, square: null });
+
+    // Build a stable signature for when to refresh thumbnails
+    const previewSig = useMemo(() => {
+        const base = previewBase ?? { partyName: 'Preview', subtitleVariant, date: '', location: '', notes: '', tracks: [], photo: {}, preview: true, showLogo: false };
+        return JSON.stringify({
+            partyName: base.partyName,
+            subtitleVariant,
+            date: base.date ?? '',
+            location: base.location ?? '',
+            notes: base.notes ?? '',
+            showLogo: base.showLogo ?? false,
+            photo: base.photo?.dataUrl ?? base.photo?.url ?? '',
+            tracks: (base.tracks ?? []).slice(0, 20).map((t) => `${t.artist}|${t.title}|${t.mix ?? ''}`),
+        });
+    }, [previewBase, subtitleVariant]);
 
     useEffect(() => {
         const controller = new AbortController();
         abortRef.current?.abort();
         abortRef.current = controller;
-        (async () => {
-            try {
-                const base: Omit<RenderPayload, 'templateId'> = { partyName: 'Preview', subtitleVariant, date: '', location: '', notes: '', tracks: [], photo: {}, preview: true };
-                const pairs = await Promise.all(templates.map(async (t) => {
-                    const res = await fetch('/api/memento/preview', { method: 'POST', signal: controller.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...base, templateId: t.id }) });
-                    if (!res.ok) return [t.id, null] as const;
-                    const blob = await res.blob();
-                    return [t.id, URL.createObjectURL(blob)] as const;
-                }));
-                const next: Record<TemplateId, string | null> = { portrait: null, landscape: null, square: null };
-                for (const [id, url] of pairs) next[id] = url;
-                setThumbs(next);
-            } catch { /* ignore */ }
-        })();
-        return () => controller.abort();
-    }, [subtitleVariant]);
+        const timeout = setTimeout(() => {
+            (async () => {
+                try {
+                    const base: Omit<RenderPayload, 'templateId'> = previewBase ?? { partyName: 'Preview', subtitleVariant, date: '', location: '', notes: '', tracks: [], photo: {}, preview: true };
+                    const pairs = await Promise.all(templates.map(async (t) => {
+                        const res = await fetch('/api/memento/preview', { method: 'POST', cache: 'no-store', signal: controller.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...base, templateId: t.id }) });
+                        if (!res.ok) return [t.id, null] as const;
+                        const blob = await res.blob();
+                        return [t.id, URL.createObjectURL(blob)] as const;
+                    }));
+                    const next: Record<TemplateId, string | null> = { portrait: null, landscape: null, square: null };
+                    for (const [id, url] of pairs) next[id] = url;
+                    // Revoke previous URLs to avoid leaks
+                    for (const id of Object.keys(urlRef.current) as TemplateId[]) {
+                        const prev = urlRef.current[id];
+                        if (prev && prev !== next[id]) {
+                            try { URL.revokeObjectURL(prev); } catch {}
+                        }
+                    }
+                    urlRef.current = next;
+                    setThumbs(next);
+                } catch { /* ignore */ }
+            })();
+        }, 300);
+        return () => { clearTimeout(timeout); controller.abort(); };
+    }, [subtitleVariant, previewSig, previewBase]);
+
+    useEffect(() => {
+        return () => {
+            // Cleanup object URLs on unmount
+            for (const id of Object.keys(urlRef.current) as TemplateId[]) {
+                const prev = urlRef.current[id];
+                if (prev) {
+                    try { URL.revokeObjectURL(prev); } catch {}
+                }
+            }
+        };
+    }, []);
+
+    const aspectClass: Record<TemplateId, string> = { portrait: 'aspect-[4/5]', landscape: 'aspect-[16/9]', square: 'aspect-square' };
 
     return (
         <div className="grid grid-cols-3 gap-3">
@@ -49,12 +91,14 @@ export default function TemplatePicker({ templateId, subtitleVariant, onChange }
                     className={`rounded-md border p-3 text-left text-sm ${templateId === t.id ? 'ring-2 ring-black' : ''}`}
                     aria-pressed={templateId === t.id}
                 >
-                    {thumbs[t.id] ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={thumbs[t.id] as string} alt={`${t.name} preview`} className="h-24 w-full rounded object-cover" />
-                    ) : (
-                        <div className="h-24 w-full rounded bg-muted" />
-                    )}
+                    <div className={`w-full overflow-hidden rounded ${aspectClass[t.id]}`}>
+                        {thumbs[t.id] ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={thumbs[t.id] as string} alt={`${t.name} preview`} className="h-full w-full object-cover" />
+                        ) : (
+                            <div className="h-full w-full bg-muted" />
+                        )}
+                    </div>
                     <div className="mt-2 font-medium">{t.name}</div>
                 </button>
             ))}
