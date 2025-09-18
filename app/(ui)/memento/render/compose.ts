@@ -3,6 +3,7 @@ import { TEMPLATE_MAP, type BaseTemplateInput, type TemplateInput } from "./temp
 import { RenderPayload } from "../types";
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { Resvg } from '@resvg/resvg-js';
 
 async function estimateDominantColorHex(img: sharp.Sharp): Promise<string | undefined> {
     try {
@@ -73,14 +74,29 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
         logoDataUrl,
         photoDataUrl: payload.photo?.dataUrl,
     };
-    const overlaySvg = template.overlaySvg(overlayOpts);
-    // Scale the SVG to match the canvas size
-    const scaledSvg = await sharp(Buffer.from(overlaySvg))
-        .resize(width * scale, height * scale, { fit: 'fill' })
-        .png()
-        .toBuffer();
-        
-    base = base.composite([{ input: scaledSvg, left: 0, top: 0 }]);
+    let overlaySvg = template.overlaySvg(overlayOpts);
+    // Embed fonts directly into SVG via @font-face to avoid missing fonts in prod
+    try {
+        const cwd = process.cwd();
+        const geist = await fs.readFile(path.join(cwd, 'app', 'fonts', 'GeistVF.woff'));
+        const geistMono = await fs.readFile(path.join(cwd, 'app', 'fonts', 'GeistMonoVF.woff'));
+        const geistB64 = Buffer.from(geist).toString('base64');
+        const geistMonoB64 = Buffer.from(geistMono).toString('base64');
+        const style = `<style><![CDATA[
+            @font-face { font-family: 'Geist'; src: url(data:font/woff;base64,${geistB64}) format('woff'); font-weight: 100 900; font-style: normal; font-display: swap; }
+            @font-face { font-family: 'Geist Mono'; src: url(data:font/woff;base64,${geistMonoB64}) format('woff'); font-weight: 100 900; font-style: normal; font-display: swap; }
+        ]]></style>`;
+        overlaySvg = overlaySvg.replace(/<svg([^>]*)>/, (m) => `${m}${style}`);
+    } catch {}
+
+    const renderer = new Resvg(overlaySvg, {
+        fitTo: { mode: 'zoom', value: scale },
+        font: { loadSystemFonts: false, defaultFontFamily: 'Geist' },
+    });
+    const rendered = renderer.render();
+    const scaledPng = Buffer.from(rendered.asPng());
+    
+    base = base.composite([{ input: scaledPng, left: 0, top: 0 }]);
 
     return base.png({ compressionLevel: 9 }).toBuffer();
 }
