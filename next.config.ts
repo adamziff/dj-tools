@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Externalize native resvg binaries to avoid bundling; we'll require at runtime
+      config.externals = config.externals || [];
+      config.externals.push(/@resvg\/resvg-js.*/);
+    }
+    return config;
+  },
 };
 
 export default nextConfig;

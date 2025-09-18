@@ -1,4 +1,18 @@
 import sharp from "sharp";
+// Use dynamic import to access Resvg only on server and avoid client bundling issues
+let ResvgCtor: any = null;
+async function getResvg() {
+    if (ResvgCtor) return ResvgCtor;
+    try {
+        // Prefer native if available
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const mod = await import('@resvg/resvg-js');
+        ResvgCtor = (mod as any).Resvg;
+    } catch {
+        ResvgCtor = null;
+    }
+    return ResvgCtor;
+}
 import { TEMPLATE_MAP, type BaseTemplateInput, type TemplateInput } from "./templates";
 import { RenderPayload } from "../types";
 import fs from 'node:fs/promises';
@@ -88,13 +102,24 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
         overlaySvg = overlaySvg.replace(/<svg([^>]*)>/, (m) => `${m}${style}`);
     } catch {}
 
-    // Rasterize SVG with Sharp; fonts are embedded in the SVG so rendering is consistent
-    const scaledSvg = await sharp(Buffer.from(overlaySvg))
-        .resize(width * scale, height * scale, { fit: 'fill' })
-        .png()
-        .toBuffer();
-
-    base = base.composite([{ input: scaledSvg, left: 0, top: 0 }]);
+    // Prefer Resvg (WASM) to rasterize text reliably in prod; fallback to Sharp
+    try {
+        const Resvg = await getResvg();
+        if (!Resvg) throw new Error('Resvg not available');
+        const renderer = new Resvg(overlaySvg, {
+            fitTo: { mode: 'zoom', value: scale },
+            font: { loadSystemFonts: false, defaultFontFamily: 'Geist' },
+        });
+        const rendered = renderer.render();
+        const png = Buffer.from(rendered.asPng());
+        base = base.composite([{ input: png, left: 0, top: 0 }]);
+    } catch {
+        const scaledSvg = await sharp(Buffer.from(overlaySvg))
+            .resize(width * scale, height * scale, { fit: 'fill' })
+            .png()
+            .toBuffer();
+        base = base.composite([{ input: scaledSvg, left: 0, top: 0 }]);
+    }
 
     return base.png({ compressionLevel: 9 }).toBuffer();
 }
