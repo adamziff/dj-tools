@@ -46,7 +46,7 @@ export default function TemplatePicker({ templateId, subtitleVariant, previewBas
                 try {
                     const base: Omit<RenderPayload, 'templateId'> = previewBase ?? { partyName: 'Preview', subtitleVariant, date: '', location: '', notes: '', tracks: [], photo: {}, preview: true };
                     const pairs = await Promise.all(templates.map(async (t) => {
-                        const res = await fetch('/api/memento/preview', { method: 'POST', cache: 'no-store', signal: controller.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...base, subtitleVariant, templateId: t.id }) });
+                        const res = await fetch('/api/memento/preview', { method: 'POST', cache: 'no-store', signal: controller.signal, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...base, templateId: t.id }) });
                         if (!res.ok) return [t.id, null] as const;
                         const blob = await res.blob();
                         return [t.id, URL.createObjectURL(blob)] as const;

@@ -11,7 +11,8 @@ export async function POST(req: NextRequest) {
             console.log('[memento/preview] photo dataUrl length', body.photo.dataUrl.length);
         }
         const buf = await composeMemento({ ...body, preview: true });
-        return new Response(buf, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' } });
+        const u8 = new Uint8Array(buf);
+        return new Response(u8, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'no-store' } });
     } catch (err) {
         console.error('[memento/preview] error', err);
         return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
