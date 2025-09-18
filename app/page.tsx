@@ -13,7 +13,6 @@ export default function Home() {
         <Link href={'/artist-bracket'}>
           <h1 className="underline hover:opacity-70 transition-opacity">2. ARTIST SONG BRACKET</h1>
         </Link>
-        <h1>3. PARTY PLANNER CHATBOT</h1>
         <Link href={'/memento'}>
           <h1 className="underline hover:opacity-70 transition-opacity">3. MEMENTO</h1>
         </Link>
