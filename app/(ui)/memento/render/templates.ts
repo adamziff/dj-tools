@@ -66,11 +66,11 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
                 ${photoDataUrl ? `<image xlink:href="${photoDataUrl}" x="80" y="180" width="920" height="720" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClip)"/>` : ''}
                 <rect x="64" y="160" width="952" height="760" rx="20" ry="20" fill="#333" fill-opacity="0.3" stroke="#5FC9E1" stroke-width="1"/>
                 ${zigzag}
-                <text x="80" y="120" font-family="system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
+                <text x="80" y="120" font-family="Geist, system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
                 ${logoDataUrl ? `<image xlink:href="${logoDataUrl}" x="900" y="40" width="120" height="80" preserveAspectRatio="xMidYMid meet"/>` : ''}
-                <text x="80" y="160" font-family="system-ui, sans-serif" font-size="22" fill="#d1f5ff" letter-spacing="1">${escapeXml(subtitle)}</text>
-                <text font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="${flow.fontSize}" fill="#fff">${flow.tspans}</text>
-                <text x="80" y="1290" font-family="system-ui, sans-serif" font-size="18" fill="#e5faff">${escapeXml([date, location].filter(Boolean).join(' • '))}</text>
+                <text x="80" y="160" font-family="Geist, system-ui, sans-serif" font-size="22" fill="#d1f5ff" letter-spacing="1">${escapeXml(subtitle)}</text>
+                <text font-family="Geist Mono, ui-monospace, SFMono-Regular, Menlo, monospace" font-size="${flow.fontSize}" fill="#fff">${flow.tspans}</text>
+                <text x="80" y="1290" font-family="Geist, system-ui, sans-serif" font-size="18" fill="#e5faff">${escapeXml([date, location].filter(Boolean).join(' • '))}</text>
             </svg>`;
         },
     },
@@ -111,12 +111,12 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
                 </defs>
                 ${photoDataUrl ? `<image xlink:href="${photoDataUrl}" x="80" y="180" width="900" height="600" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClipLandscape)"/>` : ''}
                 ${zigzag}
-                <text x="80" y="120" font-family="system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
+                <text x="80" y="120" font-family="Geist, system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
                 ${logoDataUrl ? `<image xlink:href="${logoDataUrl}" x="1400" y="40" width="160" height="100" preserveAspectRatio="xMidYMid meet"/>` : ''}
                 ${trident}
-                <text x="80" y="160" font-family="system-ui, sans-serif" font-size="22" fill="#d1f5ff">${escapeXml(subtitle)}</text>
-                <text font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="${flow.fontSize}" fill="#eaffff">${flow.tspans}</text>
-                <text x="80" y="860" font-family="system-ui, sans-serif" font-size="18" fill="#e5faff">${escapeXml([date, location].filter(Boolean).join(' • '))}</text>
+                <text x="80" y="160" font-family="Geist, system-ui, sans-serif" font-size="22" fill="#d1f5ff">${escapeXml(subtitle)}</text>
+                <text font-family="Geist Mono, ui-monospace, SFMono-Regular, Menlo, monospace" font-size="${flow.fontSize}" fill="#eaffff">${flow.tspans}</text>
+                <text x="80" y="860" font-family="Geist, system-ui, sans-serif" font-size="18" fill="#e5faff">${escapeXml([date, location].filter(Boolean).join(' • '))}</text>
             </svg>`;
         },
     },
@@ -156,12 +156,12 @@ export const TEMPLATE_MAP: Record<TemplateId, TemplateConfig> = {
                 </defs>
                 ${photoDataUrl ? `<image xlink:href="${photoDataUrl}" x="80" y="180" width="920" height="520" preserveAspectRatio="xMidYMid slice" clip-path="url(#photoClipSquare)"/>` : ''}
                 <rect x="64" y="160" width="952" height="560" rx="20" ry="20" fill="#333" fill-opacity="0.3" stroke="#5FC9E1" stroke-width="1"/>
-                <text x="80" y="120" font-family="system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
+                <text x="80" y="120" font-family="Geist, system-ui, sans-serif" font-size="${titleSize}" font-weight="800" fill="#fff">${escapeXml(partyName)}</text>
                 ${logoDataUrl ? `<image xlink:href="${logoDataUrl}" x="900" y="40" width="120" height="80" preserveAspectRatio="xMidYMid meet"/>` : ''}
                 ${trident}
-                <text x="80" y="160" font-family="system-ui, sans-serif" font-size="22" fill="#d1f5ff">${escapeXml(subtitle)}</text>
-                <text font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="${flow.fontSize}" fill="#fff">${flow.tspans}</text>
-                <text x="80" y="1040" font-family="system-ui, sans-serif" font-size="18" fill="#e5faff">${escapeXml([date, location].filter(Boolean).join(' • '))}</text>
+                <text x="80" y="160" font-family="Geist, system-ui, sans-serif" font-size="22" fill="#d1f5ff">${escapeXml(subtitle)}</text>
+                <text font-family="Geist Mono, ui-monospace, SFMono-Regular, Menlo, monospace" font-size="${flow.fontSize}" fill="#fff">${flow.tspans}</text>
+                <text x="80" y="1040" font-family="Geist, system-ui, sans-serif" font-size="18" fill="#e5faff">${escapeXml([date, location].filter(Boolean).join(' • '))}</text>
             </svg>`;
         },
     },

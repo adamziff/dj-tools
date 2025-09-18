@@ -1,4 +1,18 @@
 import sharp from "sharp";
+// Use dynamic import to access Resvg only on server and avoid client bundling issues
+let ResvgCtor: any = null;
+async function getResvg() {
+    if (ResvgCtor) return ResvgCtor;
+    try {
+        // Prefer native if available
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const mod = await import('@resvg/resvg-js');
+        ResvgCtor = (mod as any).Resvg;
+    } catch {
+        ResvgCtor = null;
+    }
+    return ResvgCtor;
+}
 import { TEMPLATE_MAP, type BaseTemplateInput, type TemplateInput } from "./templates";
 import { RenderPayload } from "../types";
 import fs from 'node:fs/promises';
@@ -73,14 +87,39 @@ export async function composeMemento(payload: RenderPayload): Promise<Buffer> {
         logoDataUrl,
         photoDataUrl: payload.photo?.dataUrl,
     };
-    const overlaySvg = template.overlaySvg(overlayOpts);
-    // Scale the SVG to match the canvas size
-    const scaledSvg = await sharp(Buffer.from(overlaySvg))
-        .resize(width * scale, height * scale, { fit: 'fill' })
-        .png()
-        .toBuffer();
-        
-    base = base.composite([{ input: scaledSvg, left: 0, top: 0 }]);
+    let overlaySvg = template.overlaySvg(overlayOpts);
+    // Embed fonts directly into SVG via @font-face to avoid missing fonts in prod
+    try {
+        const cwd = process.cwd();
+        const geist = await fs.readFile(path.join(cwd, 'app', 'fonts', 'GeistVF.woff'));
+        const geistMono = await fs.readFile(path.join(cwd, 'app', 'fonts', 'GeistMonoVF.woff'));
+        const geistB64 = Buffer.from(geist).toString('base64');
+        const geistMonoB64 = Buffer.from(geistMono).toString('base64');
+        const style = `<style><![CDATA[
+            @font-face { font-family: 'Geist'; src: url(data:font/woff;base64,${geistB64}) format('woff'); font-weight: 100 900; font-style: normal; font-display: swap; }
+            @font-face { font-family: 'Geist Mono'; src: url(data:font/woff;base64,${geistMonoB64}) format('woff'); font-weight: 100 900; font-style: normal; font-display: swap; }
+        ]]></style>`;
+        overlaySvg = overlaySvg.replace(/<svg([^>]*)>/, (m) => `${m}${style}`);
+    } catch {}
+
+    // Prefer Resvg (WASM) to rasterize text reliably in prod; fallback to Sharp
+    try {
+        const Resvg = await getResvg();
+        if (!Resvg) throw new Error('Resvg not available');
+        const renderer = new Resvg(overlaySvg, {
+            fitTo: { mode: 'zoom', value: scale },
+            font: { loadSystemFonts: false, defaultFontFamily: 'Geist' },
+        });
+        const rendered = renderer.render();
+        const png = Buffer.from(rendered.asPng());
+        base = base.composite([{ input: png, left: 0, top: 0 }]);
+    } catch {
+        const scaledSvg = await sharp(Buffer.from(overlaySvg))
+            .resize(width * scale, height * scale, { fit: 'fill' })
+            .png()
+            .toBuffer();
+        base = base.composite([{ input: scaledSvg, left: 0, top: 0 }]);
+    }
 
     return base.png({ compressionLevel: 9 }).toBuffer();
 }
